@@ -12,10 +12,12 @@ function showError(error) {
   const log = document.getElementById('errorLog');
   log.style.display = 'block';
   log.innerText += error + '\n';
+  console.error(error); // Log error to console as well for better visibility
 }
 
 window.onerror = function(message, source, lineno, colno, error) {
-  showError(`JS Error: ${message} at ${source}:${lineno}:${colno}`);
+  const errorMessage = `JS Error: ${message} at ${source}:${lineno}:${colno}`;
+  showError(errorMessage);
 };
 
 window.addEventListener("unhandledrejection", function(event) {
@@ -85,6 +87,7 @@ async function startAR() {
       domOverlay: { root: document.body }
     });
 
+    console.log("AR session started successfully");
     renderer.xr.setSession(xrSession);
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
 
@@ -95,7 +98,9 @@ async function startAR() {
 
     animate();
   } catch (e) {
-    showError("AR session failed: " + e.message);
+    const errorMessage = "AR session failed: " + e.message;
+    showError(errorMessage);
+    console.error(errorMessage);
   }
 }
 
@@ -121,6 +126,7 @@ async function placeModel() {
   loader.load(
     'assets/objects/aoiBtest.glb', // ✅ Make sure your model is here
     async (gltf) => {
+      console.log("Model loaded", gltf);
       currentModel = gltf.scene;
       currentModel.scale.set(0.01, 0.01, 0.01);
 
@@ -141,7 +147,9 @@ async function placeModel() {
     },
     undefined,
     (error) => {
-      showError("Model loading error: " + error.message);
+      const errorMessage = "Model loading error: " + error.message;
+      showError(errorMessage);
+      console.error(errorMessage);
     }
   );
 }
@@ -178,5 +186,8 @@ window.onload = () => {
   }
 
   initScene();
-  document.getElementById('arButton').addEventListener('click', startAR);
+  document.getElementById('arButton').addEventListener('click', () => {
+    console.log("AR button clicked");
+    startAR();
+  });
 };
