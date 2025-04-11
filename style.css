@@ -1,9 +1,12 @@
+/* General reset for margin and overflow */
 body {
     margin: 0;
     overflow: hidden;
     font-family: Arial, sans-serif;
+    background-color: #000;
   }
   
+  /* Information display at the top of the screen */
   #info {
     position: absolute;
     top: 10px;
@@ -11,10 +14,27 @@ body {
     color: white;
     background: rgba(0, 0, 0, 0.5);
     padding: 5px;
+    font-family: Arial, sans-serif;
     font-size: 16px;
     z-index: 100;
   }
   
+  /* Warning message when tracking is lost */
+  #warning {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: red;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    display: none;
+    z-index: 100;
+  }
+  
+  /* AR button at the bottom of the screen */
   #arButton {
     position: absolute;
     bottom: 20px;
@@ -30,16 +50,27 @@ body {
     z-index: 100;
   }
   
-  #warning {
+  /* Error log display for debugging on the screen */
+  #errorLog {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    max-height: 30%;
+    overflow-y: auto;
+    background: rgba(255, 0, 0, 0.2);
     color: red;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    font-size: 18px;
+    font-size: 14px;
+    padding: 10px;
+    font-family: monospace;
+    z-index: 9999;
     display: none;
-    z-index: 100;
+  }
+  
+  /* Style for the AR scene background to ensure full-screen rendering */
+  canvas {
+    display: block; /* Ensures no margin or padding on the canvas */
+    width: 100vw;
+    height: 100vh;
   }
   

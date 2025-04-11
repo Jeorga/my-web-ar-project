@@ -9,9 +9,8 @@ let lastPlacementTime = 0;
 const placementCooldown = 500;
 
 function showError(error) {
-  console.error(error); // Log the error in the browser console
   const log = document.getElementById('errorLog');
-  log.style.display = 'block'; // Make the error log visible
+  log.style.display = 'block';
   log.innerText += error + '\n';
 }
 
@@ -123,7 +122,7 @@ async function placeModel() {
     'assets/objects/aoiBtest.glb', // ✅ Make sure your model is here
     async (gltf) => {
       currentModel = gltf.scene;
-      currentModel.scale.set(0.01, 0.01, 0.01);
+      currentModel.scale.set(0.1, 0.1, 0.1);
 
       const frame = renderer.xr.getFrame();
       const hits = frame.getHitTestResults(xrHitTestSource);
