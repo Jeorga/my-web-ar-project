@@ -9,15 +9,14 @@ let lastPlacementTime = 0;
 const placementCooldown = 500;
 
 function showError(error) {
+  console.error(error); // Log the error in the browser console
   const log = document.getElementById('errorLog');
-  log.style.display = 'block';
-  log.innerText = error + '\n';
-  console.error(error); // Log error to console as well for better visibility
+  log.style.display = 'block'; // Make the error log visible
+  log.innerText += error + '\n';
 }
 
 window.onerror = function(message, source, lineno, colno, error) {
-  const errorMessage = `JS Error: ${message} at ${source}:${lineno}:${colno}`;
-  showError(errorMessage);
+  showError(`JS Error: ${message} at ${source}:${lineno}:${colno}`);
 };
 
 window.addEventListener("unhandledrejection", function(event) {
@@ -87,7 +86,6 @@ async function startAR() {
       domOverlay: { root: document.body }
     });
 
-    console.log("AR session started successfully");
     renderer.xr.setSession(xrSession);
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
 
@@ -98,9 +96,7 @@ async function startAR() {
 
     animate();
   } catch (e) {
-    const errorMessage = "AR session failed: " + e.message;
-    showError(errorMessage);
-    console.error(errorMessage);
+    showError("AR session failed: " + e.message);
   }
 }
 
@@ -126,7 +122,6 @@ async function placeModel() {
   loader.load(
     'assets/objects/aoiBtest.glb', // ✅ Make sure your model is here
     async (gltf) => {
-      console.log("Model loaded", gltf);
       currentModel = gltf.scene;
       currentModel.scale.set(0.01, 0.01, 0.01);
 
@@ -147,9 +142,7 @@ async function placeModel() {
     },
     undefined,
     (error) => {
-      const errorMessage = "Model loading error: " + error.message;
-      showError(errorMessage);
-      console.error(errorMessage);
+      showError("Model loading error: " + error.message);
     }
   );
 }
@@ -186,8 +179,5 @@ window.onload = () => {
   }
 
   initScene();
-  document.getElementById('arButton').addEventListener('click', () => {
-    console.log("AR button clicked");
-    startAR();
-  });
+  document.getElementById('arButton').addEventListener('click', startAR);
 };
