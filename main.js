@@ -1,38 +1,54 @@
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.module.js';
-import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.134.0/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'three';
 
 let scene, camera, renderer, xrSession = null, xrReferenceSpace, xrHitTestSource = null;
-let infoDiv, warningDiv;
 let currentModel = null;
 let modelAnchor = null;
-const loader = new GLTFLoader();
+let infoDiv, warningDiv;
+const loader = new THREE.GLTFLoader();
 let lastPlacementTime = 0;
 const placementCooldown = 500;
 
+function showError(error) {
+  const log = document.getElementById('errorLog');
+  log.style.display = 'block';
+  log.innerText += error + '\n';
+}
+
+window.onerror = function(message, source, lineno, colno, error) {
+  showError(`JS Error: ${message} at ${source}:${lineno}:${colno}`);
+};
+
+window.addEventListener("unhandledrejection", function(event) {
+  showError("Unhandled Promise Rejection: " + event.reason);
+});
+
+function isMobile() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  return /android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent);
+}
+
 function checkWebXRSupport() {
   if (!navigator.xr) {
-    alert("WebXR not supported in your browser");
+    showError("WebXR not supported in your browser");
     return false;
   }
   return true;
 }
 
 function setupLighting() {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-  directionalLight.position.set(0.5, 1, 0.5);
-  scene.add(directionalLight);
+  const ambient = new THREE.AmbientLight(0xffffff, 0.8);
+  const directional = new THREE.DirectionalLight(0xffffff, 1);
+  directional.position.set(0.5, 1, 0.5);
+  scene.add(ambient, directional);
 }
 
 function initScene() {
   if (renderer) {
     renderer.setAnimationLoop(null);
-    if (renderer.domElement && renderer.domElement.parentNode) {
+    renderer.dispose();
+    if (renderer.domElement.parentNode) {
       renderer.domElement.parentNode.removeChild(renderer.domElement);
     }
-    renderer.dispose();
   }
 
   scene = new THREE.Scene();
@@ -59,6 +75,7 @@ function initScene() {
 }
 
 async function startAR() {
+  showError("Start AR clicked");
   if (!checkWebXRSupport()) return;
 
   try {
@@ -69,60 +86,24 @@ async function startAR() {
     });
 
     renderer.xr.setSession(xrSession);
+    xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
 
-    xrSession.addEventListener('end', onSessionEnd);
-    xrSession.addEventListener('visibilitychange', onVisibilityChange);
-
-    try {
-      xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-    } catch {
-      xrReferenceSpace = await xrSession.requestReferenceSpace('viewer');
-    }
-
-    if (xrSession.requestHitTestSource) {
-      const viewSpace = await xrSession.requestReferenceSpace('viewer');
-      xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
-    }
+    const viewerSpace = await xrSession.requestReferenceSpace('viewer');
+    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
 
     document.getElementById('arButton').style.display = 'none';
+
     animate();
-  } catch (err) {
-    console.error("AR session failed:", err);
-    alert("Failed to start AR: " + err.message);
-  }
-}
-
-function onSessionEnd() {
-  renderer.setAnimationLoop(null);
-  if (renderer.domElement && renderer.domElement.parentNode) {
-    renderer.domElement.parentNode.removeChild(renderer.domElement);
-  }
-  renderer.dispose();
-
-  scene.clear();
-  xrSession = null;
-  xrHitTestSource = null;
-  xrReferenceSpace = null;
-  if (currentModel) scene.remove(currentModel);
-  currentModel = null;
-  modelAnchor = null;
-
-  document.getElementById('arButton').style.display = 'block';
-  warningDiv.style.display = 'none';
-
-  initScene();
-}
-
-function onVisibilityChange() {
-  if (xrSession && xrSession.visibilityState === 'visible-blurred') {
-    warningDiv.style.display = 'block';
-  } else {
-    warningDiv.style.display = 'none';
+  } catch (e) {
+    showError("AR session failed: " + e.message);
   }
 }
 
 function onTap() {
-  if (!renderer.xr.isPresenting || !xrSession) return;
+  if (!renderer.xr.isPresenting || !xrSession) {
+    showError("Tap ignored: Not in AR session");
+    return;
+  }
 
   const now = Date.now();
   if (now - lastPlacementTime < placementCooldown) return;
@@ -132,63 +113,51 @@ function onTap() {
 }
 
 async function placeModel() {
-  if (currentModel && modelAnchor) {
-    try {
-      const newAnchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
-      if (newAnchor && modelAnchor.cancel) modelAnchor.cancel();
-      modelAnchor = newAnchor;
-    } catch {}
-    return;
-  }
-
   if (currentModel) {
     scene.remove(currentModel);
     currentModel = null;
   }
 
   loader.load(
-    'models/aoiBtest.glb',
+    'assets/objects/aoiBtest.glb', // ✅ Make sure your model is here
     async (gltf) => {
       currentModel = gltf.scene;
-      currentModel.scale.set(0.1, 0.1, 0.1);
+      currentModel.scale.set(0.01, 0.01, 0.01);
 
-      if (xrHitTestSource && xrReferenceSpace) {
-        try {
-          const frame = renderer.xr.getFrame();
-          const hitTestResults = frame.getHitTestResults(xrHitTestSource);
-          if (hitTestResults.length > 0) {
-            const hit = hitTestResults[0];
-            const hitPose = hit.getPose(xrReferenceSpace);
-            if (hitPose) {
-              const hitMatrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
-              currentModel.applyMatrix4(hitMatrix);
+      const frame = renderer.xr.getFrame();
+      const hits = frame.getHitTestResults(xrHitTestSource);
 
-              if (xrSession.createAnchor) {
-                modelAnchor = await xrSession.createAnchor(hitPose.transform, xrReferenceSpace);
-              }
-            }
-          }
-        } catch {}
-      }
-
-      if (!currentModel.parent) {
+      if (hits.length > 0) {
+        const hit = hits[0];
+        const pose = hit.getPose(xrReferenceSpace);
+        currentModel.position.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+      } else {
         const xrCamera = renderer.xr.getCamera(camera);
         const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion);
         currentModel.position.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
-        currentModel.quaternion.copy(xrCamera.quaternion);
       }
 
       scene.add(currentModel);
     },
     undefined,
-    (error) => console.error("Error loading model:", error)
+    (error) => {
+      showError("Model loading error: " + error.message);
+    }
   );
 }
 
 function animate() {
   renderer.setAnimationLoop((timestamp, frame) => {
     if (!frame || !xrSession) return;
+
     render(frame);
+
+    const pose = frame.getViewerPose(xrReferenceSpace);
+    if (!pose || pose.emulatedPosition) {
+      warningDiv.style.display = 'block';
+    } else {
+      warningDiv.style.display = 'none';
+    }
   });
 }
 
@@ -197,18 +166,17 @@ function render(frame) {
     const xrCamera = renderer.xr.getCamera(camera);
     const pos = xrCamera.position;
     infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
-
-    if (currentModel && !modelAnchor) {
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(xrCamera.quaternion);
-      const targetPos = xrCamera.position.clone().add(forward.multiplyScalar(1.5));
-      currentModel.position.lerp(targetPos, 0.05);
-    }
   }
 
   renderer.render(scene, camera);
 }
 
 window.onload = () => {
+  if (!isMobile()) {
+    document.body.innerHTML = "<h1 style='text-align:center;margin-top:40vh;'>AR not available for laptop yet, sorry.</h1>";
+    return;
+  }
+
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
 };
