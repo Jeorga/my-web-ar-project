@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Web AR Project</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="ar-container"></div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Page - Stable Model Positioning</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
+  <div id="warning">Tracking lost - move device slowly to recover</div>
+  <button id="arButton">Start AR</button>
 
-    <!-- Include Three.js -->
-    <script type="module" src="main.js" defer></script>
-  </body>
+  <script type="module" src="main.js" defer></script>
+</body>
 </html>
