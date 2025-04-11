@@ -1,148 +1,68 @@
-let scene, camera, renderer, xrSession = null, xrReferenceSpace;
-let models = []; // Store multiple models
-let infoDiv, desktopWarningDiv;
-const loader = new THREE.GLTFLoader();
+// main.js
 
-// Check if the browser supports WebXR
-function checkWebXRSupport() {
-    if (!navigator.xr) {
-        alert("WebXR not supported in your browser");
+// Device detection function
+function isMobileDevice() {
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+}
+
+// Function to handle navigation to the AR page
+function navigateToAR() {
+    if (isMobileDevice()) {
+        window.location.href = '/ar.html';
+    } else {
+        // Show a message on the index page if the user is on a non-mobile device
+        const messageDiv = document.createElement('div');
+        messageDiv.id = 'notAvailable';
+        messageDiv.textContent = 'Currently AR not available.';
+        messageDiv.style.position = 'absolute';
+        messageDiv.style.top = '50%';
+        messageDiv.style.left = '50%';
+        messageDiv.style.transform = 'translate(-50%, -50%)';
+        messageDiv.style.color = '#333';
+        messageDiv.style.background = 'rgba(255, 255, 255, 0.9)';
+        messageDiv.style.padding = '20px';
+        messageDiv.style.fontSize = '18px';
+        messageDiv.style.textAlign = 'center';
+        messageDiv.style.borderRadius = '10px';
+        messageDiv.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+        document.body.appendChild(messageDiv);
+    }
+}
+
+// Function to initialize the AR page (called from ar.html)
+function initARPage() {
+    if (!isMobileDevice()) {
+        // If the user somehow accesses ar.html directly on a non-mobile device, redirect or show message
+        const notAvailableDiv = document.getElementById('notAvailable');
+        const arContentDiv = document.getElementById('arContent');
+        notAvailableDiv.style.display = 'block';
+        arContentDiv.style.display = 'none';
         return false;
     }
-    return true;
+    return true; // Proceed with AR initialization
 }
 
-// Check if it's a mobile device
-function isMobile() {
-    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-    return /android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent);
-}
-
-function setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    directionalLight.position.set(0.5, 1, 0.5);
-    scene.add(directionalLight);
-}
-
-function initScene() {
-    if (renderer) {
-        renderer.setAnimationLoop(null);
-        if (renderer.domElement && renderer.domElement.parentNode) {
-            renderer.domElement.parentNode.removeChild(renderer.domElement);
-        }
-        renderer.dispose();
-    }
-
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.xr.enabled = true;
-    renderer.xr.setReferenceSpaceType('local-floor');
-    document.body.appendChild(renderer.domElement);
-
-    setupLighting();
-
-    infoDiv = document.getElementById('info');
-    desktopWarningDiv = document.getElementById('desktopWarning');
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    window.addEventListener('click', onTap);  // Handle screen taps
-}
-
-async function startAR() {
-    if (!checkWebXRSupport()) return;
-
-    try {
-        xrSession = await navigator.xr.requestSession('immersive-ar', {
-            requiredFeatures: ['local-floor'],
-            optionalFeatures: ['hit-test', 'dom-overlay'],
-            domOverlay: { root: document.body }
+// Function to initialize the index page
+function initIndexPage() {
+    const arLink = document.getElementById('arLink');
+    if (arLink) {
+        arLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigateToAR();
         });
-
-        renderer.xr.setSession(xrSession);
-        xrSession.addEventListener('end', onSessionEnd);
-
-        xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-        document.getElementById('arButton').style.display = 'none';
-        animate();
-    } catch (err) {
-        alert("Failed to start AR: " + err.message);
     }
 }
 
-function onSessionEnd() {
-    renderer.setAnimationLoop(null);
-    if (renderer.domElement && renderer.domElement.parentNode) {
-        renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-    renderer.dispose();
-
-    while (scene.children.length > 0) {
-        scene.remove(scene.children[0]);
-    }
-
-    xrSession = null;
-    xrReferenceSpace = null;
-    models = [];  // Clear models
-    document.getElementById('arButton').style.display = 'block';  // Show AR button again
-}
-
-function onTap(event) {
-    if (!xrSession) return;
-    placeModel();  // Add a new model on screen tap
-}
-
-async function placeModel() {
-    loader.load(
-        '/static/objects/aoiBa.glb', // Path to your model
-        (gltf) => {
-            const model = gltf.scene;
-            model.scale.set(0.1, 0.1, 0.1);
-            models.push(model);
-            scene.add(model);
-
-            // Optionally, set model placement logic here, such as random positioning
-            model.position.set(Math.random() * 2 - 1, 0, Math.random() * 2 - 1);
-        },
-        undefined,
-        (error) => {
-            console.error("Error loading model:", error);
+// Initialize based on the current page
+document.addEventListener('DOMContentLoaded', () => {
+    const currentPage = window.location.pathname;
+    if (currentPage.includes('index.html') || currentPage === '/') {
+        initIndexPage();
+    } else if (currentPage.includes('ar.html')) {
+        if (initARPage()) {
+            // If on a mobile device, the AR page's inline script will handle the rest
+            // This ensures the AR logic (initScene, startAR, etc.) runs only if needed
         }
-    );
-}
-
-function animate() {
-    renderer.setAnimationLoop((timestamp, frame) => {
-        if (!frame || !xrSession) return;
-        render(frame);
-    });
-}
-
-function render(frame) {
-    if (renderer.xr.isPresenting) {
-        const xrCamera = renderer.xr.getCamera(camera);
-        const pos = xrCamera.position;
-        infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
     }
-
-    renderer.render(scene, camera);
-}
-
-window.onload = () => {
-    if (!isMobile()) {
-        desktopWarningDiv.style.display = 'block';  // Show warning for desktop users
-        document.getElementById('arButton').style.display = 'none';  // Hide AR button for desktop
-    } else {
-        initScene();
-        document.getElementById('arButton').addEventListener('click', startAR);
-    }
-};
+});
