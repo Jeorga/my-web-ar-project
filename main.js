@@ -18,9 +18,21 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+function isMobile() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  return /android/i.test(userAgent) || /iPad|iPhone|iPod/.test(userAgent);
+}
+
 function initializeAR() {
   document.getElementById('ar-container').appendChild(renderer.domElement);
   animate();
 }
 
-initializeAR(); // ← always initialize for testing
+if (isMobile()) {
+  initializeAR();
+} else {
+  document.getElementById('ar-container').innerHTML = `
+    <h1 style="text-align:center; margin-top: 40vh; font-family:sans-serif;">
+      AR not available for laptop yet, sorry.
+    </h1>`;
+}
