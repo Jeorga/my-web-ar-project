@@ -11,7 +11,7 @@ const placementCooldown = 500;
 function showError(error) {
   const log = document.getElementById('errorLog');
   log.style.display = 'block';
-  log.innerText += error + '\n';
+  log.innerText = error + '\n';
   console.error(error); // Log error to console as well for better visibility
 }
 
