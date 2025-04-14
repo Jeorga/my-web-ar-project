@@ -1,26 +1,40 @@
 body {
     margin: 0;
-    padding: 0;
     overflow: hidden;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #000;
   }
   
   #info {
     position: absolute;
     top: 10px;
     left: 10px;
-    color: white;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 10px;
-    border-radius: 5px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 8px;
+    font-family: 'Arial', sans-serif;
     font-size: 14px;
-    line-height: 1.5;
+    border-radius: 4px;
     z-index: 100;
-    pointer-events: none;
   }
   
-  #info div {
-    margin: 2px 0;
+  #arButton {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    font-size: 16px;
+    background-color: #2196f3;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 100;
+  }
+  
+  #arButton:hover {
+    background-color: #1976d2;
   }
   
   #warning {
@@ -28,69 +42,15 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
-    background: rgba(200, 50, 50, 0.8);
+    color: #ff5252;
+    background: rgba(0, 0, 0, 0.8);
     padding: 15px 20px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    border-radius: 6px;
     display: none;
+    text-align: center;
     z-index: 100;
-    pointer-events: none;
-  }
-  
-  .warning-icon {
-    font-size: 24px;
-  }
-  
-  .warning-text {
-    font-size: 16px;
-  }
-  
-  #controls {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-  }
-  
-  button {
-    padding: 12px 24px;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  }
-  
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  #arButton {
-    background-color: #4CAF50;
-    color: white;
-  }
-  
-  #resetButton {
-    background-color: #f44336;
-    color: white;
-  }
-  
-  #placeButton {
-    background-color: #2196F3;
-    color: white;
-  }
-  
-  button:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   }
   
   #loading {
@@ -98,28 +58,29 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
-    background: rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    border-radius: 6px;
     display: none;
     z-index: 100;
   }
   
-  .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    border-top: 4px solid #ffffff;
-    animation: spin 1s linear infinite;
+  /* Improve accessibility */
+  #arButton:focus {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
   }
   
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+  @media (max-width: 600px) {
+    #arButton {
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+    #info, #warning, #loading {
+      font-size: 14px;
+      padding: 8px 12px;
+    }
   }
