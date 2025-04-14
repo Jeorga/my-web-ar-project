@@ -1,8 +1,18 @@
 body {
     margin: 0;
     overflow: hidden;
-    font-family: sans-serif;
-    background-color: #000;
+  }
+  
+  #infosome {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    z-index: 100;
   }
   
   #arButton {
@@ -10,36 +20,44 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 12px 24px;
-    background: #007bff;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 10px;
-    font-size: 16px;
-    z-index: 10;
+    border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-  }
-  
-  #info, #warning, #loading {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    padding: 8px 16px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    font-size: 14px;
-    border-radius: 8px;
-    z-index: 10;
-    display: none;
+    z-index: 100;
   }
   
   #warning {
-    top: 50px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: red;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    display: none;
+    z-index: 100;
   }
   
   #loading {
-    top: 90px;
-    background: rgba(255, 165, 0, 0.8);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    display: none;
+    z-index: 100;
   }
   
+  .hidden {
+    display: none;
+  }
