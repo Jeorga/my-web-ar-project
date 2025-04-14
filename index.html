@@ -3,17 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AR Page - Stable Model Positioning</title>
+  <title>AR Model Placement</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
-  <button id="arButton">Start AR</button>
+  <div id="info">
+    <div>Camera Position: X: 0, Y: 0, Z: 0</div>
+    <div>Tracking State: Not tracking</div>
+    <div>Model Status: No model loaded</div>
+  </div>
+  
+  <div id="warning">
+    <div class="warning-icon">⚠️</div>
+    <div class="warning-text">Tracking lost - move device slowly to recover</div>
+  </div>
+  
+  <div id="controls">
+    <button id="arButton">Start AR</button>
+    <button id="resetButton" disabled>Reset Scene</button>
+    <button id="placeButton" disabled>Place Model</button>
+  </div>
 
-  <!-- Load Three.js and GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Loading model...</div>
+  </div>
+
+  <!-- Load Three.js & GLTFLoader from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
