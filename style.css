@@ -1,6 +1,8 @@
 body {
     margin: 0;
     overflow: hidden;
+    font-family: Arial, sans-serif;
+    background-color: #000;
   }
   
   #info {
@@ -9,10 +11,10 @@ body {
     left: 10px;
     color: white;
     background: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
+    padding: 5px 10px;
+    font-size: 14px;
     z-index: 100;
+    border-radius: 4px;
   }
   
   #arButton {
@@ -20,14 +22,18 @@ body {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 10px 20px;
+    padding: 12px 24px;
     font-size: 16px;
     background-color: #4CAF50;
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     z-index: 100;
+  }
+  
+  #arButton:hover {
+    background-color: #45a049;
   }
   
   #warning {
@@ -37,10 +43,10 @@ body {
     transform: translate(-50%, -50%);
     color: red;
     background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
+    padding: 16px 24px;
+    font-size: 16px;
     display: none;
     z-index: 100;
+    border-radius: 8px;
   }
   
