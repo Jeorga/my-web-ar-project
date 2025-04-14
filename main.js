@@ -182,7 +182,7 @@ async function placeModel() {
     }
 
     loader.load(
-        '/static/objects/aoiBa.glb',
+        './assets/models/aoiBa.glb',
         async (gltf) => {
             currentModel = gltf.scene;
             currentModel.scale.set(0.1, 0.1, 0.1);
