@@ -1,14 +1,42 @@
-// main.js
 let scene, camera, renderer, xrSession = null, xrReferenceSpace, xrHitTestSource = null;
-let infoDiv, warningDiv;
+let infoDiv, warningDiv, loadingDiv;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
+let preloadedModel = null;
 let lastPlacementTime = 0;
 const placementCooldown = 200;
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
+
+// Preload the model on page load
+function preloadModel() {
+  loader.load(
+    './assets/models/aoiBa.glb',
+    (gltf) => {
+      preloadedModel = gltf.scene;
+      preloadedModel.scale.set(0.1, 0.1, 0.1);
+      preloadedModel.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
+      });
+      console.log("Model preloaded");
+    },
+    undefined,
+    (error) => {
+      console.error("Preloading failed:", error);
+    }
+  );
+}
+
+function showLoadingUI(show) {
+  if (loadingDiv) {
+    loadingDiv.style.display = show ? 'block' : 'none';
+  }
+}
 
 function checkWebXRSupport() {
   if (!navigator.xr) {
@@ -49,6 +77,7 @@ function initScene() {
 
   infoDiv = document.getElementById('info');
   warningDiv = document.getElementById('warning');
+  loadingDiv = document.getElementById('loading');
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -145,33 +174,21 @@ function onVisibilityChange() {
 }
 
 function onTap(event) {
-  if (!renderer.xr.isPresenting || !xrSession) {
-    console.log("Not in AR session");
-    return;
-  }
+  if (!renderer.xr.isPresenting || !xrSession) return;
 
   const now = Date.now();
-  if (now - lastPlacementTime < placementCooldown) {
-    return;
-  }
-  lastPlacementTime = now;
+  if (now - lastPlacementTime < placementCooldown) return;
 
-  console.log("Tap detected - attempting to place model");
+  lastPlacementTime = now;
   placeModel();
 }
 
 async function placeModel() {
-  if (currentModel && modelAnchor) {
-    try {
-      const newAnchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
-      if (newAnchor) {
-        if (modelAnchor.cancel) modelAnchor.cancel();
-        modelAnchor = newAnchor;
-        console.log("Anchor updated");
-      }
-    } catch (e) {
-      console.warn("Failed to update anchor:", e);
-    }
+  showLoadingUI(true);
+
+  if (!preloadedModel) {
+    console.warn("Model not preloaded yet.");
+    showLoadingUI(false);
     return;
   }
 
@@ -180,63 +197,45 @@ async function placeModel() {
     currentModel = null;
   }
 
-  loader.load(
-    './assets/models/aoiBa.glb',
-    async (gltf) => {
-      currentModel = gltf.scene;
-      currentModel.scale.set(0.1, 0.1, 0.1);
+  currentModel = preloadedModel.clone();
 
-      currentModel.traverse((child) => {
-        if (child.isMesh) {
-          console.log("Material:", child.material);
-        }
-      });
+  if (xrHitTestSource && xrReferenceSpace) {
+    try {
+      const frame = renderer.xr.getFrame();
+      const hitTestResults = frame.getHitTestResults(xrHitTestSource);
 
-      if (xrHitTestSource && xrReferenceSpace) {
-        try {
-          const frame = renderer.xr.getFrame();
-          const hitTestResults = frame.getHitTestResults(xrHitTestSource);
+      if (hitTestResults.length > 0) {
+        const hit = hitTestResults[0];
+        const hitPose = hit.getPose(xrReferenceSpace);
 
-          if (hitTestResults.length > 0) {
-            const hit = hitTestResults[0];
-            const hitPose = hit.getPose(xrReferenceSpace);
+        if (hitPose) {
+          const hitMatrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
+          currentModel.applyMatrix4(hitMatrix);
 
-            if (hitPose) {
-              const hitMatrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
-              currentModel.applyMatrix4(hitMatrix);
-
-              if (xrSession.createAnchor) {
-                try {
-                  modelAnchor = await xrSession.createAnchor(hitPose.transform, xrReferenceSpace);
-                  console.log("Anchor created for stable positioning");
-                } catch (e) {
-                  console.warn("Couldn't create anchor:", e);
-                }
-              }
-              console.log("Placed model on surface");
+          if (xrSession.createAnchor) {
+            try {
+              modelAnchor = await xrSession.createAnchor(hitPose.transform, xrReferenceSpace);
+              console.log("Anchor created for stable positioning");
+            } catch (e) {
+              console.warn("Couldn't create anchor:", e);
             }
           }
-        } catch (e) {
-          console.warn("Hit test failed:", e);
         }
       }
-
-      if (!currentModel.parent) {
-        const xrCamera = renderer.xr.getCamera(camera);
-        forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
-        currentModel.position.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
-        currentModel.quaternion.copy(xrCamera.quaternion);
-        console.log("Placed model in front of camera");
-      }
-
-      scene.add(currentModel);
-      console.log("Scene children after adding model:", scene.children);
-    },
-    undefined,
-    (error) => {
-      console.error("Error loading model:", error);
+    } catch (e) {
+      console.warn("Hit test failed:", e);
     }
-  );
+  }
+
+  if (!currentModel.parent) {
+    const xrCamera = renderer.xr.getCamera(camera);
+    forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
+    currentModel.position.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
+    currentModel.quaternion.copy(xrCamera.quaternion);
+  }
+
+  scene.add(currentModel);
+  showLoadingUI(false);
 }
 
 function animate() {
@@ -276,5 +275,6 @@ function render(frame) {
 
 window.onload = () => {
   initScene();
+  preloadModel();
   document.getElementById('arButton').addEventListener('click', startAR);
 };
