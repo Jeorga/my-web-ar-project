@@ -4,57 +4,6 @@ body {
   }
   
   #info {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    z-index: 100;
-  }
-  
-  #arButton {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 100;
-  }
-  
-  #warning {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: red;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    display: none;
-    z-index: 100;
-  }
-
-  #arButton {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    font-size: 18px;
-    z-index: 10;
-  }
-  
-  #info {
     position: fixed;
     top: 10px;
     left: 10px;
@@ -62,6 +11,7 @@ body {
     color: white;
     padding: 5px 10px;
     border-radius: 5px;
+    font-family: Arial, sans-serif;
     z-index: 10;
   }
   
@@ -70,10 +20,13 @@ body {
     top: 40px;
     left: 10px;
     background: orange;
+    color: black;
     padding: 6px 10px;
     border-radius: 5px;
     font-weight: bold;
+    font-family: Arial, sans-serif;
     z-index: 10;
+    display: none;
   }
   
   #loading {
@@ -87,6 +40,21 @@ body {
     border-radius: 10px;
     font-size: 18px;
     z-index: 20;
+    display: none;
   }
   
+  #arButton {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    font-size: 18px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    z-index: 100;
+  }
   
