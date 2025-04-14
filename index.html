@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Mobile AR Experience</title>
-    <link rel="stylesheet" href="/style.css">
+    <title>AR Page - Stable Model Positioning</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-    <div id="loading">Loading Model...</div>
-    <div id="warning">Tracking lost - move device slowly</div>
+    <div id="warning">Tracking lost - move device slowly to recover</div>
     <button id="arButton">Start AR</button>
 
+    <!-- Load Three.js and GLTFLoader from CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="/main.js"></script>
-    <script>
-        // Block non-mobile devices
-        if (!/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            document.body.innerHTML = '<h1 style="text-align: center; padding: 2rem;">This AR experience is only available on mobile devices.</h1>';
-        }
-    </script>
+    
+    <!-- Load our JavaScript -->
+    <script src="main.js"></script>
 </body>
 </html>
