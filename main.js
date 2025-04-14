@@ -38,10 +38,20 @@ function initScene() {
 }
 
 function setupLighting() {
-  scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-  const directional = new THREE.DirectionalLight(0xffffff, 1);
-  directional.position.set(0.5, 1, 0.5);
+  // Ambient light — increase intensity
+  const ambient = new THREE.AmbientLight(0xffffff, 1.5);
+  scene.add(ambient);
+
+  // Directional light — boost intensity and add shadows
+  const directional = new THREE.DirectionalLight(0xffffff, 2);
+  directional.position.set(1, 3, 2);
+  directional.castShadow = true;
   scene.add(directional);
+
+  // Optional: Add a backlight for better visibility
+  const backlight = new THREE.DirectionalLight(0xffffff, 1);
+  backlight.position.set(-1, -1, -1);
+  scene.add(backlight);
 }
 
 async function startAR() {
