@@ -1,76 +1,45 @@
-/* General reset for margin and overflow */
 body {
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background-color: #000;
-  }
-  
-  /* Information display at the top of the screen */
-  #info {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    color: white;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 5px;
-    font-family: Arial, sans-serif;
-    font-size: 16px;
-    z-index: 100;
-  }
-  
-  /* Warning message when tracking is lost */
-  #warning {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: red;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    display: none;
-    z-index: 100;
-  }
-  
-  /* AR button at the bottom of the screen */
-  #arButton {
-    position: absolute;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    z-index: 100;
-  }
-  
-  /* Error log display for debugging on the screen */
-  #errorLog {
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    right: 10px;
-    max-height: 30%;
-    overflow-y: auto;
-    background: rgba(255, 0, 0, 0.2);
-    color: red;
-    font-size: 14px;
-    padding: 10px;
-    font-family: monospace;
-    z-index: 9999;
-    display: none;
-  }
-  
-  /* Style for the AR scene background to ensure full-screen rendering */
-  canvas {
-    display: block; /* Ensures no margin or padding on the canvas */
-    width: 100vw;
-    height: 100vh;
-  }
-  
+  margin: 0;
+  overflow: hidden;
+}
+
+#info {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 5px;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  z-index: 100;
+}
+
+#arButton {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+#warning {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: red;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  font-size: 18px;
+  display: none;
+  z-index: 100;
+}

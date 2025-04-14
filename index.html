@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARWEB-TXTEST</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AR Page - Stable Model Positioning</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <h1>Welcome to ARWEB-TXTEST</h1>
-    <p>Explore our AR experience:</p>
-    <a href="/ar.html" id="arLink">Go to AR Page</a>
-    <script src="main.js"></script>
+  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
+  <div id="warning">Tracking lost - move device slowly to recover</div>
+  <button id="arButton">Start AR</button>
+
+  <!-- Load Three.js & GLTFLoader -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
