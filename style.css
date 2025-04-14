@@ -1,5 +1,9 @@
-body { margin: 0; overflow: hidden; }
-#info {
+body {
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  #info {
     position: absolute;
     top: 10px;
     left: 10px;
@@ -9,8 +13,9 @@ body { margin: 0; overflow: hidden; }
     font-family: Arial, sans-serif;
     font-size: 16px;
     z-index: 100;
-}
-#arButton {
+  }
+  
+  #arButton {
     position: absolute;
     bottom: 20px;
     left: 50%;
@@ -23,8 +28,9 @@ body { margin: 0; overflow: hidden; }
     border-radius: 5px;
     cursor: pointer;
     z-index: 100;
-}
-#warning {
+  }
+  
+  #warning {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -36,4 +42,5 @@ body { margin: 0; overflow: hidden; }
     font-size: 18px;
     display: none;
     z-index: 100;
-}
+  }
+  

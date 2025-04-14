@@ -1,11 +1,8 @@
-import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.module.min.js';
-import { GLTFLoader } from 'https://unpkg.com/three@0.134.0/examples/jsm/loaders/GLTFLoader.js';
-
 let scene, camera, renderer, xrSession = null, xrReferenceSpace, xrHitTestSource = null;
 let infoDiv, warningDiv;
 let currentModel = null;
 let modelAnchor = null;
-const loader = new GLTFLoader();
+const loader = new THREE.GLTFLoader();
 let lastPlacementTime = 0;
 const placementCooldown = 200;
 const forward = new THREE.Vector3(0, 0, -1);
@@ -21,11 +18,16 @@ function checkWebXRSupport() {
 }
 
 function setupLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
+
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    directionalLight.position.set(0.5, 1, 0.5);
+    directionalLight.position.set(1, 2, 1);
     scene.add(directionalLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+    hemiLight.position.set(0, 20, 0);
+    scene.add(hemiLight);
 }
 
 function initScene() {
@@ -78,21 +80,24 @@ async function startAR() {
         try {
             xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
         } catch (e) {
+            console.log("Local-floor not available, using viewer reference space");
             xrReferenceSpace = await xrSession.requestReferenceSpace('viewer');
         }
 
         if (xrSession.requestHitTestSource) {
             try {
                 const viewSpace = await xrSession.requestReferenceSpace('viewer');
-                xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace, entityTypes: ['plane', 'mesh'] });
+                xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
+                console.log("Hit-test ready");
             } catch (e) {
-                console.warn("Hit test source creation failed:", e);
+                console.warn("Hit test failed:", e);
             }
         }
 
         document.getElementById('arButton').style.display = 'none';
         animate();
     } catch (err) {
+        console.error("AR session failed:", err);
         alert("Failed to start AR: " + err.message);
     }
 }
@@ -121,6 +126,7 @@ function onSessionEnd() {
     warningDiv.style.display = 'none';
 
     initScene();
+    console.log("AR session ended and scene reinitialized");
 }
 
 function onVisibilityChange() {
@@ -131,13 +137,17 @@ function onVisibilityChange() {
     }
 }
 
-function onTap() {
-    if (!renderer.xr.isPresenting || !xrSession) return;
+function onTap(event) {
+    if (!renderer.xr.isPresenting || !xrSession) {
+        console.log("Not in AR session");
+        return;
+    }
 
     const now = Date.now();
     if (now - lastPlacementTime < placementCooldown) return;
     lastPlacementTime = now;
 
+    console.log("Tap detected - attempting to place model");
     placeModel();
 }
 
@@ -148,6 +158,7 @@ async function placeModel() {
             if (newAnchor) {
                 if (modelAnchor.cancel) modelAnchor.cancel();
                 modelAnchor = newAnchor;
+                console.log("Anchor updated");
             }
         } catch (e) {
             console.warn("Failed to update anchor:", e);
@@ -161,10 +172,26 @@ async function placeModel() {
     }
 
     loader.load(
-        'assets/models/aoiBa.glb',
+        '/static/objects/aoiBa.glb',
         async (gltf) => {
             currentModel = gltf.scene;
+
+            // Center the model
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const center = box.getCenter(new THREE.Vector3());
+            currentModel.position.sub(center);
+
             currentModel.scale.set(0.1, 0.1, 0.1);
+
+            currentModel.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                    if (child.material) {
+                        child.material.side = THREE.FrontSide;
+                    }
+                }
+            });
 
             if (xrHitTestSource && xrReferenceSpace) {
                 try {
@@ -182,10 +209,13 @@ async function placeModel() {
                             if (xrSession.createAnchor) {
                                 try {
                                     modelAnchor = await xrSession.createAnchor(hitPose.transform, xrReferenceSpace);
+                                    console.log("Anchor created for stable positioning");
                                 } catch (e) {
                                     console.warn("Couldn't create anchor:", e);
                                 }
                             }
+
+                            console.log("Placed model on surface");
                         }
                     }
                 } catch (e) {
@@ -198,9 +228,11 @@ async function placeModel() {
                 forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
                 currentModel.position.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
                 currentModel.quaternion.copy(xrCamera.quaternion);
+                console.log("Placed model in front of camera");
             }
 
             scene.add(currentModel);
+            console.log("Scene children after adding model:", scene.children);
         },
         undefined,
         (error) => {
@@ -212,6 +244,7 @@ async function placeModel() {
 function animate() {
     renderer.setAnimationLoop((timestamp, frame) => {
         if (!frame || !xrSession) return;
+
         render(frame);
 
         if (frame.getViewerPose) {
