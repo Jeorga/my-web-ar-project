@@ -1,42 +1,22 @@
-let scene, camera, renderer, xrSession = null, xrReferenceSpace, xrHitTestSource = null;
-let infoDiv, warningDiv;
-let currentModel = null;
-let modelAnchor = null;
-let preloadedModel = null;
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-const loader = new THREE.GLTFLoader();
+let scene, camera, renderer;
+let xrSession = null, xrReferenceSpace, xrHitTestSource = null;
+let currentModel = null, modelAnchor = null;
+const loader = new GLTFLoader();
+
 let lastPlacementTime = 0;
 const placementCooldown = 200;
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
-let lastUpdate = 0;
 
-function checkWebXRSupport() {
-  if (!navigator.xr) {
-    alert("WebXR not supported in your browser");
-    return false;
-  }
-  return true;
-}
+const infoDiv = document.getElementById('info');
+const warningDiv = document.getElementById('warning');
+const loadingDiv = document.getElementById('loading');
+const arButton = document.getElementById('arButton');
 
-function setupLighting() {
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-  scene.add(ambientLight);
-
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-  directionalLight.position.set(0.5, 1, 0.5);
-  scene.add(directionalLight);
-}
-
-function initScene() {
-  if (renderer) {
-    renderer.setAnimationLoop(null);
-    if (renderer.domElement && renderer.domElement.parentNode) {
-      renderer.domElement.parentNode.removeChild(renderer.domElement);
-    }
-    renderer.dispose();
-  }
-
+function setupScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -46,10 +26,10 @@ function initScene() {
   renderer.xr.setReferenceSpaceType('local-floor');
   document.body.appendChild(renderer.domElement);
 
-  setupLighting();
-
-  infoDiv = document.getElementById('info');
-  warningDiv = document.getElementById('warning');
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(0.5, 1, 0.5);
+  scene.add(ambientLight, directionalLight);
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -60,116 +40,48 @@ function initScene() {
   window.addEventListener('click', onTap);
 }
 
-function preloadModel() {
-  loader.load(
-    './assets/models/aoiBa.glb',
-    (gltf) => {
-      preloadedModel = gltf.scene;
-      preloadedModel.scale.set(0.1, 0.1, 0.1);
-      preloadedModel.traverse((child) => {
-        if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = true;
-        }
-      });
-      console.log("Model preloaded");
-    },
-    undefined,
-    (error) => {
-      console.error("Preloading failed:", error);
-    }
-  );
-}
-
-function showLoadingUI(show) {
-  const loading = document.getElementById('loading');
-  if (loading) loading.style.display = show ? 'block' : 'none';
-}
-
 async function startAR() {
-  if (!checkWebXRSupport()) return;
+  if (!navigator.xr) return alert('WebXR not supported');
 
-  const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!isSupported) {
-    alert("immersive-ar not supported");
-    return;
-  }
+  const supported = await navigator.xr.isSessionSupported('immersive-ar');
+  if (!supported) return alert('immersive-ar not supported');
 
-  try {
-    xrSession = await navigator.xr.requestSession('immersive-ar', {
-      requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
-      domOverlay: { root: document.body }
-    });
+  xrSession = await navigator.xr.requestSession('immersive-ar', {
+    requiredFeatures: ['local-floor'],
+    optionalFeatures: ['hit-test', 'anchors', 'dom-overlay'],
+    domOverlay: { root: document.body }
+  });
 
-    renderer.xr.setSession(xrSession);
-    xrSession.addEventListener('end', onSessionEnd);
-    xrSession.addEventListener('visibilitychange', onVisibilityChange);
+  renderer.xr.setSession(xrSession);
+  xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
 
-    try {
-      xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-    } catch {
-      xrReferenceSpace = await xrSession.requestReferenceSpace('viewer');
-    }
+  const viewerSpace = await xrSession.requestReferenceSpace('viewer');
+  xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
 
-    if (xrSession.requestHitTestSource) {
-      try {
-        const viewSpace = await xrSession.requestReferenceSpace('viewer');
-        xrHitTestSource = await xrSession.requestHitTestSource({
-          space: viewSpace,
-          entityTypes: ['plane', 'mesh']
-        });
-      } catch (e) {
-        console.warn("Hit test failed:", e);
-      }
-    }
+  xrSession.addEventListener('end', onSessionEnd);
+  xrSession.addEventListener('visibilitychange', () => {
+    warningDiv.style.display = xrSession.visibilityState === 'visible-blurred' ? 'block' : 'none';
+  });
 
-    document.getElementById('arButton').style.display = 'none';
-    animate();
-  } catch (err) {
-    console.error("AR session failed:", err);
-    alert("Failed to start AR: " + err.message);
-  }
+  arButton.style.display = 'none';
+  loadingDiv.style.display = 'none';
+  animate();
 }
 
 function onSessionEnd() {
   renderer.setAnimationLoop(null);
-  if (renderer.domElement && renderer.domElement.parentNode) {
-    renderer.domElement.parentNode.removeChild(renderer.domElement);
-  }
-  renderer.dispose();
-
-  while (scene.children.length > 0) {
-    scene.remove(scene.children[0]);
-  }
-
-  xrSession = null;
-  xrHitTestSource = null;
-  xrReferenceSpace = null;
-
-  if (currentModel) {
-    scene.remove(currentModel);
-    currentModel = null;
-  }
-
+  document.body.removeChild(renderer.domElement);
+  xrSession = xrHitTestSource = xrReferenceSpace = null;
+  currentModel = null;
   modelAnchor = null;
-
-  document.getElementById('arButton').style.display = 'block';
+  scene.clear();
+  arButton.style.display = 'block';
   warningDiv.style.display = 'none';
-
-  initScene();
-}
-
-function onVisibilityChange() {
-  if (xrSession && xrSession.visibilityState === 'visible-blurred') {
-    warningDiv.style.display = 'block';
-  } else {
-    warningDiv.style.display = 'none';
-  }
+  setupScene();
 }
 
 function onTap() {
-  if (!renderer.xr.isPresenting || !xrSession) return;
+  if (!xrSession || !renderer.xr.isPresenting) return;
 
   const now = Date.now();
   if (now - lastPlacementTime < placementCooldown) return;
@@ -179,94 +91,72 @@ function onTap() {
 }
 
 async function placeModel() {
-  showLoadingUI(true);
+  if (currentModel) scene.remove(currentModel);
+  currentModel = null;
 
-  if (currentModel) {
-    scene.remove(currentModel);
-    currentModel = null;
-  }
+  loadingDiv.style.display = 'block';
 
-  if (!preloadedModel) {
-    console.warn("Model not yet ready");
-    showLoadingUI(false);
-    return;
-  }
+  loader.load(
+    './assets/models/aoiBa.glb',
+    async (gltf) => {
+      currentModel = gltf.scene;
+      currentModel.scale.set(0.1, 0.1, 0.1);
 
-  currentModel = preloadedModel.clone();
-
-  if (xrHitTestSource && xrReferenceSpace) {
-    try {
       const frame = renderer.xr.getFrame();
-      const hitTestResults = frame.getHitTestResults(xrHitTestSource);
+      const hits = frame.getHitTestResults(xrHitTestSource);
 
-      if (hitTestResults.length > 0) {
-        const hit = hitTestResults[0];
-        const hitPose = hit.getPose(xrReferenceSpace);
-
+      if (hits.length > 0) {
+        const hitPose = hits[0].getPose(xrReferenceSpace);
         if (hitPose) {
-          const hitMatrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
-          currentModel.applyMatrix4(hitMatrix);
+          const matrix = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
+          currentModel.applyMatrix4(matrix);
 
           if (xrSession.createAnchor) {
             try {
               modelAnchor = await xrSession.createAnchor(hitPose.transform, xrReferenceSpace);
             } catch (e) {
-              console.warn("Couldn't create anchor:", e);
+              console.warn("Anchor failed:", e);
             }
           }
         }
+      } else {
+        const xrCamera = renderer.xr.getCamera(camera);
+        forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
+        targetPos.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
+        currentModel.position.copy(targetPos);
+        currentModel.quaternion.copy(xrCamera.quaternion);
       }
-    } catch (e) {
-      console.warn("Hit test failed:", e);
+
+      scene.add(currentModel);
+      loadingDiv.style.display = 'none';
+    },
+    undefined,
+    (error) => {
+      console.error("Model load error:", error);
+      loadingDiv.textContent = "Failed to load model";
     }
-  }
-
-  if (!currentModel.parent) {
-    const xrCamera = renderer.xr.getCamera(camera);
-    forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
-    currentModel.position.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
-    currentModel.quaternion.copy(xrCamera.quaternion);
-  }
-
-  scene.add(currentModel);
-  showLoadingUI(false);
+  );
 }
 
 function animate() {
   renderer.setAnimationLoop((timestamp, frame) => {
     if (!frame || !xrSession) return;
-    render(frame);
-
     const pose = frame.getViewerPose(xrReferenceSpace);
-    if (!pose || pose.emulatedPosition) {
-      warningDiv.style.display = 'block';
+
+    if (pose && !pose.emulatedPosition) {
+      const xrCamera = renderer.xr.getCamera(camera);
+      const pos = xrCamera.position;
+      infoDiv.style.display = 'block';
+      infoDiv.textContent = `Camera: X ${pos.x.toFixed(2)}, Y ${pos.y.toFixed(2)}, Z ${pos.z.toFixed(2)}`;
     } else {
-      warningDiv.style.display = 'none';
+      warningDiv.style.display = 'block';
     }
+
+    renderer.render(scene, camera);
   });
 }
 
-function render(frame) {
-  if (renderer.xr.isPresenting) {
-    const xrCamera = renderer.xr.getCamera(camera);
-    const pos = xrCamera.position;
-    const now = performance.now();
-    if (now - lastUpdate > 100) {
-      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
-      lastUpdate = now;
-    }
-
-    if (currentModel && !modelAnchor) {
-      forward.set(0, 0, -1).applyQuaternion(xrCamera.quaternion);
-      targetPos.copy(xrCamera.position).add(forward.multiplyScalar(1.5));
-      currentModel.position.copy(targetPos);
-    }
-  }
-  renderer.render(scene, camera);
-}
-
-window.onload = () => {
-  initScene();
-  preloadModel();
-  document.getElementById('arButton').addEventListener('click', startAR);
-};
+window.addEventListener('load', () => {
+  setupScene();
+  arButton.addEventListener('click', startAR);
+});

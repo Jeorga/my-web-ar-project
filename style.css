@@ -2,6 +2,7 @@ body {
     margin: 0;
     overflow: hidden;
     font-family: sans-serif;
+    background-color: #000;
   }
   
   #arButton {
@@ -17,6 +18,7 @@ body {
     font-size: 16px;
     z-index: 10;
     cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
   }
   
   #info, #warning, #loading {
@@ -29,15 +31,15 @@ body {
     font-size: 14px;
     border-radius: 8px;
     z-index: 10;
+    display: none;
   }
   
   #warning {
     top: 50px;
-    display: none;
   }
   
   #loading {
     top: 90px;
-    display: none;
+    background: rgba(255, 165, 0, 0.8);
   }
   
