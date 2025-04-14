@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AR Page - Stable Model Positioning</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>WebAR Model Placement</title>
   <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
-  <!-- UI Elements -->
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning" style="display:none;">Tracking lost - move device slowly to recover</div>
-  <div id="loading" style="display:none;">Loading model...</div>
-  <button id="arButton">Enter AR</button>
+  <button id="arButton">Start AR</button>
+  <div id="info">Initializing...</div>
+  <div id="warning">Move your device to detect surfaces</div>
+  <div id="loading">Placing model...</div>
 
-  <!-- Load Three.js and GLTFLoader -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
