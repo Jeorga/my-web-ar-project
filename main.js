@@ -12,6 +12,7 @@ const PLACEMENT_COOLDOWN = 200;
 window.onload = () => {
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
+  document.getElementById('exitButton').addEventListener('click', exitAR);
 };
 
 function initScene() {
@@ -77,7 +78,9 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
+
     document.getElementById('modelSelector').style.display = 'none';
+    document.getElementById('exitButton').style.display = 'block';
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
@@ -97,6 +100,7 @@ function onSessionEnd() {
   document.getElementById('arButton').innerText = "Start AR";
   document.getElementById('arButton').disabled = false;
   document.getElementById('modelSelector').style.display = 'block';
+  document.getElementById('exitButton').style.display = 'none';
   warningDiv.style.display = 'none';
 }
 
@@ -200,4 +204,10 @@ function render(frame) {
   }
 
   renderer.render(scene, camera);
+}
+
+function exitAR() {
+  if (xrSession) {
+    xrSession.end(); // Triggers onSessionEnd
+  }
 }

@@ -38,6 +38,20 @@ body {
   z-index: 100;
 }
 
+#exitButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+}
+
 #modelSelector {
   position: absolute;
   bottom: 20px;
