@@ -1,36 +1,29 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let currentModel, modelAnchor;
+let infoDiv, warningDiv, currentModel, modelAnchor;
+let selectedModel = null;
+
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
-let infoDiv, warningDiv, exitButton, menuDiv, selectedModel;
+const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
-let lastPlacement = 0;
+let lastPlacementTime = 0;
 
-const PLACEMENT_COOLDOWN = 300;
+const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
-  infoDiv = document.getElementById('info');
-  warningDiv = document.getElementById('warning');
-  exitButton = document.getElementById('exitButton');
-  menuDiv = document.getElementById('menu');
-
-  document.getElementById('startButton').onclick = () => {
-    const select = document.getElementById('modelSelect');
-    selectedModel = select.value;
-    if (selectedModel) startAR();
-    else alert('Please select a model.');
-  };
-
-  exitButton.onclick = endAR;
-
   initScene();
+  document.getElementById('arButton').addEventListener('click', startAR);
 };
+
+function selectModel(name) {
+  selectedModel = name;
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('arButton').style.display = 'block';
+}
 
 function initScene() {
   scene = new THREE.Scene();
-
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -38,8 +31,10 @@ function initScene() {
   renderer.xr.setReferenceSpaceType('local-floor');
   document.body.appendChild(renderer.domElement);
 
-  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1.2);
-  scene.add(light);
+  setupLighting();
+
+  infoDiv = document.getElementById('info');
+  warningDiv = document.getElementById('warning');
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -50,72 +45,120 @@ function initScene() {
   window.addEventListener('click', onTap);
 }
 
+function setupLighting() {
+  const ambient = new THREE.AmbientLight(0xffffff, 1.5);
+  scene.add(ambient);
+
+  const directional = new THREE.DirectionalLight(0xffffff, 20);
+  directional.position.set(1, 3, 2);
+  directional.castShadow = true;
+  scene.add(directional);
+
+  const backlight = new THREE.DirectionalLight(0xffffff, 1);
+  backlight.position.set(-1, -1, -1);
+  scene.add(backlight);
+}
+
 async function startAR() {
-  if (!navigator.xr) return alert("WebXR not supported");
-  if (!await navigator.xr.isSessionSupported('immersive-ar')) return alert("AR not supported");
+  if (!selectedModel) {
+    alert("Please select a model first.");
+    return;
+  }
+
+  const button = document.getElementById('arButton');
+  button.disabled = true;
+  button.innerText = "Starting AR...";
+
+  if (!navigator.xr) {
+    alert("WebXR not supported");
+    return;
+  }
+
+  const supported = await navigator.xr.isSessionSupported('immersive-ar');
+  if (!supported) {
+    alert("immersive-ar not supported");
+    return;
+  }
 
   try {
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'anchors', 'dom-overlay'],
+      optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
       domOverlay: { root: document.body }
     });
 
     xrSession.addEventListener('end', onSessionEnd);
-    xrSession.addEventListener('visibilitychange', () => {
-      warningDiv.style.display = xrSession.visibilityState === 'visible-blurred' ? 'block' : 'none';
-    });
+    xrSession.addEventListener('visibilitychange', onVisibilityChange);
 
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-    const viewerSpace = await xrSession.requestReferenceSpace('viewer');
-    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
+    const viewSpace = await xrSession.requestReferenceSpace('viewer');
+    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
 
     renderer.xr.setSession(xrSession);
-    menuDiv.style.display = 'none';
-    exitButton.style.display = 'block';
     animate();
-  } catch (err) {
-    alert("Failed to start AR: " + err.message);
-  }
-}
+    button.style.display = 'none';
 
-function endAR() {
-  if (xrSession) xrSession.end();
+  } catch (err) {
+    console.error("Failed to start AR:", err);
+    alert("AR failed: " + err.message);
+  }
 }
 
 function onSessionEnd() {
   renderer.setAnimationLoop(null);
-  scene.clear();
-  if (renderer.domElement) renderer.domElement.remove();
   xrSession = null;
-  xrReferenceSpace = null;
   xrHitTestSource = null;
+  xrReferenceSpace = null;
+
+  if (currentModel) scene.remove(currentModel);
   currentModel = null;
   modelAnchor = null;
 
-  menuDiv.style.display = 'flex';
-  exitButton.style.display = 'none';
+  document.getElementById('arButton').style.display = 'none';
+  document.getElementById('menu').style.display = 'block';
   warningDiv.style.display = 'none';
+}
 
-  initScene();
+function onVisibilityChange() {
+  warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
 }
 
 function onTap() {
-  if (!xrSession || Date.now() - lastPlacement < PLACEMENT_COOLDOWN) return;
-  lastPlacement = Date.now();
+  if (!renderer.xr.isPresenting || !xrSession) return;
+
+  const now = Date.now();
+  if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
+  lastPlacementTime = now;
+
   placeModel();
 }
 
 async function placeModel() {
-  if (!selectedModel) return;
+  if (currentModel && modelAnchor) {
+    try {
+      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
+      if (anchor) {
+        modelAnchor.cancel?.();
+        modelAnchor = anchor;
+        console.log("Anchor updated");
+      }
+    } catch (e) {
+      console.warn("Anchor update failed:", e);
+    }
+    return;
+  }
 
   if (currentModel) {
     scene.remove(currentModel);
     currentModel = null;
   }
 
-  loader.load(`./assets/models/${selectedModel}`, async (gltf) => {
+  const modelPath = `./assets/models/${selectedModel}.glb`;
+  loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
+    currentModel.traverse(child => {
+      if (child.isMesh) child.material.side = THREE.DoubleSide;
+    });
     currentModel.scale.set(0.1, 0.1, 0.1);
 
     const frame = renderer.xr.getFrame();
@@ -136,36 +179,45 @@ async function placeModel() {
     }
 
     if (!currentModel.parent) {
-      const cam = renderer.xr.getCamera(camera);
-      forward.set(0, 0, -1).applyQuaternion(cam.quaternion);
-      currentModel.position.copy(cam.position).add(forward.multiplyScalar(1.5));
-      currentModel.quaternion.copy(cam.quaternion);
+      const xrCam = renderer.xr.getCamera(camera);
+      forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
+      currentModel.position.copy(xrCam.position).add(forward.multiplyScalar(1.5));
+      currentModel.quaternion.copy(xrCam.quaternion);
     }
 
     scene.add(currentModel);
   }, undefined, err => {
-    console.error("Failed to load model:", err);
+    console.error("Model load error:", err);
   });
 }
 
 function animate() {
   renderer.setAnimationLoop((timestamp, frame) => {
-    if (!frame) return;
+    if (!frame || !xrSession) return;
+    render(frame);
 
     const pose = frame.getViewerPose(xrReferenceSpace);
     warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
+  });
+}
 
+function render(frame) {
+  if (renderer.xr.isPresenting) {
     const xrCam = renderer.xr.getCamera(camera);
-    if (Date.now() - lastUpdate > 100) {
-      infoDiv.textContent = `Camera Position: X: ${xrCam.position.x.toFixed(2)}, Y: ${xrCam.position.y.toFixed(2)}, Z: ${xrCam.position.z.toFixed(2)}`;
-      lastUpdate = Date.now();
+    const pos = xrCam.position;
+    const now = performance.now();
+
+    if (now - lastUpdate > 100) {
+      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
+      lastUpdate = now;
     }
 
     if (currentModel && !modelAnchor) {
       forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
-      currentModel.position.copy(xrCam.position).add(forward.multiplyScalar(1.5));
+      targetPos.copy(xrCam.position).add(forward.multiplyScalar(1.5));
+      currentModel.position.copy(targetPos);
     }
+  }
 
-    renderer.render(scene, camera);
-  });
+  renderer.render(scene, camera);
 }

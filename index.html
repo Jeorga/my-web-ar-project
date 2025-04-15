@@ -2,26 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>AR Model Selector</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="menu">
-    <h2>Select a Model</h2>
-    <select id="modelSelect">
-      <option value="">-- Choose a 3D Model --</option>
-      <option value="aoiBa.glb">Aoi B</option>
-      <option value="aoiBtest.glb">Fox</option>
-    </select>
-    <button id="startButton">Start AR</button>
+    <h2>Select a 3D Model</h2>
+    <button onclick="selectModel('aoiBa')">AOI-B</button>
+    <button onclick="selectModel('aoiBtest')">Robot</button>
   </div>
 
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
   <div id="warning">Tracking lost - move device slowly to recover</div>
-  <button id="exitButton">Exit AR</button>
+  <button id="arButton" style="display: none;">Start AR</button>
 
-  <!-- Three.js & GLTFLoader -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
