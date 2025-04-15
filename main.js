@@ -1,25 +1,18 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, currentModel, modelAnchor;
-let selectedModel = null;
-
+let infoDiv, warningDiv, loadingDiv, modelDropdown;
+let currentModel = null;
+let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
-
 const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
 };
-
-function selectModel(name) {
-  selectedModel = name;
-  document.getElementById('menu').style.display = 'none';
-  document.getElementById('arButton').style.display = 'block';
-}
 
 function initScene() {
   scene = new THREE.Scene();
@@ -35,6 +28,8 @@ function initScene() {
 
   infoDiv = document.getElementById('info');
   warningDiv = document.getElementById('warning');
+  loadingDiv = document.getElementById('loading');
+  modelDropdown = document.getElementById('modelDropdown');
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -46,39 +41,25 @@ function initScene() {
 }
 
 function setupLighting() {
-  const ambient = new THREE.AmbientLight(0xffffff, 1.5);
-  scene.add(ambient);
-
+  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
   const directional = new THREE.DirectionalLight(0xffffff, 20);
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
-
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
 }
 
 async function startAR() {
-  if (!selectedModel) {
-    alert("Please select a model first.");
-    return;
-  }
-
   const button = document.getElementById('arButton');
   button.disabled = true;
   button.innerText = "Starting AR...";
 
-  if (!navigator.xr) {
-    alert("WebXR not supported");
-    return;
-  }
+  if (!navigator.xr) return alert("WebXR not supported");
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!supported) {
-    alert("immersive-ar not supported");
-    return;
-  }
+  if (!supported) return alert("immersive-ar not supported");
 
   try {
     xrSession = await navigator.xr.requestSession('immersive-ar', {
@@ -96,8 +77,7 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
-    button.style.display = 'none';
-
+    document.getElementById('modelSelector').style.display = 'none';
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
@@ -114,8 +94,9 @@ function onSessionEnd() {
   currentModel = null;
   modelAnchor = null;
 
-  document.getElementById('arButton').style.display = 'none';
-  document.getElementById('menu').style.display = 'block';
+  document.getElementById('arButton').innerText = "Start AR";
+  document.getElementById('arButton').disabled = false;
+  document.getElementById('modelSelector').style.display = 'block';
   warningDiv.style.display = 'none';
 }
 
@@ -125,11 +106,9 @@ function onVisibilityChange() {
 
 function onTap() {
   if (!renderer.xr.isPresenting || !xrSession) return;
-
   const now = Date.now();
   if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
   lastPlacementTime = now;
-
   placeModel();
 }
 
@@ -140,7 +119,6 @@ async function placeModel() {
       if (anchor) {
         modelAnchor.cancel?.();
         modelAnchor = anchor;
-        console.log("Anchor updated");
       }
     } catch (e) {
       console.warn("Anchor update failed:", e);
@@ -153,12 +131,10 @@ async function placeModel() {
     currentModel = null;
   }
 
-  const modelPath = `./assets/models/${selectedModel}.glb`;
+  const modelPath = `./assets/models/${modelDropdown.value}`;
+  loadingDiv.style.display = 'block';
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
-    currentModel.traverse(child => {
-      if (child.isMesh) child.material.side = THREE.DoubleSide;
-    });
     currentModel.scale.set(0.1, 0.1, 0.1);
 
     const frame = renderer.xr.getFrame();
@@ -169,6 +145,7 @@ async function placeModel() {
         if (pose) {
           const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
           currentModel.applyMatrix4(matrix);
+
           try {
             modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
           } catch (e) {
@@ -186,8 +163,11 @@ async function placeModel() {
     }
 
     scene.add(currentModel);
+    loadingDiv.style.display = 'none';
   }, undefined, err => {
+    loadingDiv.style.display = 'none';
     console.error("Model load error:", err);
+    alert("Model failed to load");
   });
 }
 
