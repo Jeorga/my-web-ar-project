@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, modelDropdown;
+let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
@@ -12,7 +12,10 @@ const PLACEMENT_COOLDOWN = 200;
 window.onload = () => {
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
-  document.getElementById('exitArButton').addEventListener('click', exitAR); // Exit AR button listener
+  exitButton = document.getElementById('exitButton');
+  exitButton.addEventListener('click', () => {
+    if (xrSession) xrSession.end();
+  });
 };
 
 function initScene() {
@@ -79,20 +82,11 @@ async function startAR() {
     renderer.xr.setSession(xrSession);
     animate();
     document.getElementById('modelSelector').style.display = 'none';
-    document.getElementById('exitArButton').style.display = 'block'; // Show exit button
+    exitButton.style.display = 'block'; // Show exit button
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
   }
-}
-
-function exitAR() {
-  if (xrSession) {
-    xrSession.end(); // Ends the AR session
-  }
-  document.getElementById('modelSelector').style.display = 'block'; // Show model selector
-  document.getElementById('exitArButton').style.display = 'none'; // Hide exit button
-  document.getElementById('arButton').style.display = 'block'; // Show start AR button again
 }
 
 function onSessionEnd() {
@@ -109,7 +103,7 @@ function onSessionEnd() {
   document.getElementById('arButton').disabled = false;
   document.getElementById('modelSelector').style.display = 'block';
   warningDiv.style.display = 'none';
-  document.getElementById('exitArButton').style.display = 'none'; // Hide exit button after session ends
+  exitButton.style.display = 'none'; // Hide exit button
 }
 
 function onVisibilityChange() {
