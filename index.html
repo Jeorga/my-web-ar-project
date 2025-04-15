@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AR Page - Model Selection</title>
+  <title>WebAR Model Selector</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -18,7 +18,10 @@
     </select>
   </div>
 
-  <button id="arButton">Start AR</button>
+  <div id="buttons">
+    <button id="arButton">Start AR</button>
+    <button id="exitButton" style="display: none;">Exit AR</button>
+  </div>
 
   <!-- Three.js & GLTFLoader -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>

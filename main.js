@@ -1,26 +1,30 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, currentModel, modelAnchor;
+let currentModel, modelAnchor;
+let selectedModel = 'aoiBa.glb';
+let infoDiv, warningDiv;
+
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
-let selectedModel = 'aoiBa.glb';
-
 const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
   initScene();
 
-  document.getElementById('arButton').addEventListener('click', startAR);
   document.getElementById('modelDropdown').addEventListener('change', e => {
     selectedModel = e.target.value;
   });
+
+  document.getElementById('arButton').addEventListener('click', startAR);
+  document.getElementById('exitButton').addEventListener('click', endAR);
 };
 
 function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -57,9 +61,10 @@ function setupLighting() {
 }
 
 async function startAR() {
-  const button = document.getElementById('arButton');
-  button.disabled = true;
-  button.innerText = "Starting AR...";
+  const arButton = document.getElementById('arButton');
+  const exitButton = document.getElementById('exitButton');
+  arButton.disabled = true;
+  arButton.innerText = "Starting...";
 
   if (!navigator.xr) return alert("WebXR not supported");
 
@@ -73,52 +78,52 @@ async function startAR() {
       domOverlay: { root: document.body }
     });
 
-    xrSession.addEventListener('end', onSessionEnd);
-    xrSession.addEventListener('visibilitychange', onVisibilityChange);
+    xrSession.addEventListener('end', endAR);
+    xrSession.addEventListener('visibilitychange', () => {
+      warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
+    });
 
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-    const viewSpace = await xrSession.requestReferenceSpace('viewer');
-    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
+    const viewerSpace = await xrSession.requestReferenceSpace('viewer');
+    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
 
     renderer.xr.setSession(xrSession);
-    animate();
+    renderer.setAnimationLoop(animate);
 
-    button.style.display = 'none';
     document.getElementById('modelSelector').style.display = 'none';
-
+    arButton.style.display = 'none';
+    exitButton.style.display = 'block';
   } catch (err) {
-    console.error("Failed to start AR:", err);
-    alert("AR failed: " + err.message);
+    console.error("AR failed:", err);
+    alert("AR start failed: " + err.message);
   }
 }
 
-function onSessionEnd() {
-  renderer.setAnimationLoop(null);
-  xrSession = null;
-  xrHitTestSource = null;
-  xrReferenceSpace = null;
+function endAR() {
+  if (xrSession) {
+    xrSession.end();
+    xrSession = null;
+  }
 
   if (currentModel) scene.remove(currentModel);
   currentModel = null;
   modelAnchor = null;
 
+  document.getElementById('arButton').innerText = "Start AR";
+  document.getElementById('arButton').disabled = false;
   document.getElementById('arButton').style.display = 'block';
+  document.getElementById('exitButton').style.display = 'none';
   document.getElementById('modelSelector').style.display = 'block';
   warningDiv.style.display = 'none';
-  initScene();
-}
 
-function onVisibilityChange() {
-  warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
+  renderer.setAnimationLoop(null);
 }
 
 function onTap() {
   if (!renderer.xr.isPresenting || !xrSession) return;
-
   const now = Date.now();
   if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
   lastPlacementTime = now;
-
   placeModel();
 }
 
@@ -126,11 +131,8 @@ async function placeModel() {
   if (currentModel && modelAnchor) {
     try {
       const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
-      if (anchor) {
-        modelAnchor.cancel?.();
-        modelAnchor = anchor;
-        console.log("Anchor updated");
-      }
+      modelAnchor?.cancel?.();
+      modelAnchor = anchor;
     } catch (e) {
       console.warn("Anchor update failed:", e);
     }
@@ -147,14 +149,13 @@ async function placeModel() {
     currentModel.scale.set(0.1, 0.1, 0.1);
 
     const frame = renderer.xr.getFrame();
-    if (frame && xrHitTestSource && xrReferenceSpace) {
+    if (frame && xrHitTestSource) {
       const hits = frame.getHitTestResults(xrHitTestSource);
       if (hits.length > 0) {
         const pose = hits[0].getPose(xrReferenceSpace);
         if (pose) {
           const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
           currentModel.applyMatrix4(matrix);
-
           try {
             modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
           } catch (e) {
@@ -173,18 +174,16 @@ async function placeModel() {
 
     scene.add(currentModel);
   }, undefined, err => {
-    console.error("Model load error:", err);
+    console.error("Failed to load model:", err);
   });
 }
 
-function animate() {
-  renderer.setAnimationLoop((timestamp, frame) => {
-    if (!frame || !xrSession) return;
-    render(frame);
+function animate(timestamp, frame) {
+  if (!frame || !xrSession) return;
+  render(frame);
 
-    const pose = frame.getViewerPose(xrReferenceSpace);
-    warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
-  });
+  const pose = frame.getViewerPose(xrReferenceSpace);
+  warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
 }
 
 function render(frame) {
