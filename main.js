@@ -13,9 +13,7 @@ window.onload = () => {
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
   exitButton = document.getElementById('exitButton');
-  exitButton.addEventListener('click', () => {
-    if (xrSession) xrSession.end();
-  });
+  exitButton.addEventListener('click', exitAR);
 };
 
 function initScene() {
@@ -60,10 +58,20 @@ async function startAR() {
   button.disabled = true;
   button.innerText = "Starting AR...";
 
-  if (!navigator.xr) return alert("WebXR not supported");
+  if (!navigator.xr) {
+    alert("WebXR not supported");
+    button.disabled = false;
+    button.innerText = "Start AR";
+    return;
+  }
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!supported) return alert("immersive-ar not supported");
+  if (!supported) {
+    alert("immersive-ar not supported");
+    button.disabled = false;
+    button.innerText = "Start AR";
+    return;
+  }
 
   try {
     xrSession = await navigator.xr.requestSession('immersive-ar', {
@@ -80,12 +88,20 @@ async function startAR() {
     xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
 
     renderer.xr.setSession(xrSession);
-    animate();
     document.getElementById('modelSelector').style.display = 'none';
-    exitButton.style.display = 'block'; // Show exit button
+    exitButton.style.display = 'block';
+    animate();
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
+    button.disabled = false;
+    button.innerText = "Start AR";
+  }
+}
+
+async function exitAR() {
+  if (xrSession) {
+    await xrSession.end();
   }
 }
 
@@ -102,8 +118,8 @@ function onSessionEnd() {
   document.getElementById('arButton').innerText = "Start AR";
   document.getElementById('arButton').disabled = false;
   document.getElementById('modelSelector').style.display = 'block';
+  exitButton.style.display = 'none';
   warningDiv.style.display = 'none';
-  exitButton.style.display = 'none'; // Hide exit button
 }
 
 function onVisibilityChange() {
