@@ -5,12 +5,17 @@ const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
+let selectedModel = 'aoiBa.glb';
 
 const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
   initScene();
+
   document.getElementById('arButton').addEventListener('click', startAR);
+  document.getElementById('modelDropdown').addEventListener('change', e => {
+    selectedModel = e.target.value;
+  });
 };
 
 function initScene() {
@@ -38,17 +43,14 @@ function initScene() {
 }
 
 function setupLighting() {
-  // Ambient light — increase intensity
   const ambient = new THREE.AmbientLight(0xffffff, 1.5);
   scene.add(ambient);
 
-  // Directional light — boost intensity and add shadows
   const directional = new THREE.DirectionalLight(0xffffff, 20);
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
 
-  // Optional: Add a backlight for better visibility
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
@@ -59,16 +61,10 @@ async function startAR() {
   button.disabled = true;
   button.innerText = "Starting AR...";
 
-  if (!navigator.xr) {
-    alert("WebXR not supported");
-    return;
-  }
+  if (!navigator.xr) return alert("WebXR not supported");
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!supported) {
-    alert("immersive-ar not supported");
-    return;
-  }
+  if (!supported) return alert("immersive-ar not supported");
 
   try {
     xrSession = await navigator.xr.requestSession('immersive-ar', {
@@ -86,7 +82,9 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
+
     button.style.display = 'none';
+    document.getElementById('modelSelector').style.display = 'none';
 
   } catch (err) {
     console.error("Failed to start AR:", err);
@@ -105,6 +103,7 @@ function onSessionEnd() {
   modelAnchor = null;
 
   document.getElementById('arButton').style.display = 'block';
+  document.getElementById('modelSelector').style.display = 'block';
   warningDiv.style.display = 'none';
   initScene();
 }
@@ -143,7 +142,7 @@ async function placeModel() {
     currentModel = null;
   }
 
-  loader.load('./assets/models/aoiBa.glb', async (gltf) => {
+  loader.load(`./assets/models/${selectedModel}`, async (gltf) => {
     currentModel = gltf.scene;
     currentModel.scale.set(0.1, 0.1, 0.1);
 

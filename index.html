@@ -3,18 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AR Page - Stable Model Positioning</title>
+  <title>AR Page - Model Selection</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
   <div id="warning">Tracking lost - move device slowly to recover</div>
+
+  <div id="modelSelector">
+    <label for="modelDropdown">Choose a 3D model:</label>
+    <select id="modelDropdown">
+      <option value="aoiBa.glb">Model A</option>
+      <option value="aoiBtest.glb">Model B</option>
+    </select>
+  </div>
+
   <button id="arButton">Start AR</button>
 
   <!-- Three.js & GLTFLoader -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
-  
 </body>
 </html>
