@@ -1,28 +1,34 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
 let currentModel, modelAnchor;
-let selectedModel = 'aoiBa.glb';
-let infoDiv, warningDiv;
-
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
-const targetPos = new THREE.Vector3();
+let infoDiv, warningDiv, exitButton, menuDiv, selectedModel;
 let lastUpdate = 0;
-let lastPlacementTime = 0;
-const PLACEMENT_COOLDOWN = 200;
+let lastPlacement = 0;
+
+const PLACEMENT_COOLDOWN = 300;
 
 window.onload = () => {
+  infoDiv = document.getElementById('info');
+  warningDiv = document.getElementById('warning');
+  exitButton = document.getElementById('exitButton');
+  menuDiv = document.getElementById('menu');
+
+  document.getElementById('startButton').onclick = () => {
+    const select = document.getElementById('modelSelect');
+    selectedModel = select.value;
+    if (selectedModel) startAR();
+    else alert('Please select a model.');
+  };
+
+  exitButton.onclick = endAR;
+
   initScene();
-
-  document.getElementById('modelDropdown').addEventListener('change', e => {
-    selectedModel = e.target.value;
-  });
-
-  document.getElementById('arButton').addEventListener('click', startAR);
-  document.getElementById('exitButton').addEventListener('click', endAR);
 };
 
 function initScene() {
   scene = new THREE.Scene();
+
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -32,10 +38,8 @@ function initScene() {
   renderer.xr.setReferenceSpaceType('local-floor');
   document.body.appendChild(renderer.domElement);
 
-  setupLighting();
-
-  infoDiv = document.getElementById('info');
-  warningDiv = document.getElementById('warning');
+  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1.2);
+  scene.add(light);
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -46,41 +50,20 @@ function initScene() {
   window.addEventListener('click', onTap);
 }
 
-function setupLighting() {
-  const ambient = new THREE.AmbientLight(0xffffff, 1.5);
-  scene.add(ambient);
-
-  const directional = new THREE.DirectionalLight(0xffffff, 20);
-  directional.position.set(1, 3, 2);
-  directional.castShadow = true;
-  scene.add(directional);
-
-  const backlight = new THREE.DirectionalLight(0xffffff, 1);
-  backlight.position.set(-1, -1, -1);
-  scene.add(backlight);
-}
-
 async function startAR() {
-  const arButton = document.getElementById('arButton');
-  const exitButton = document.getElementById('exitButton');
-  arButton.disabled = true;
-  arButton.innerText = "Starting...";
-
   if (!navigator.xr) return alert("WebXR not supported");
-
-  const supported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!supported) return alert("immersive-ar not supported");
+  if (!await navigator.xr.isSessionSupported('immersive-ar')) return alert("AR not supported");
 
   try {
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
+      optionalFeatures: ['hit-test', 'anchors', 'dom-overlay'],
       domOverlay: { root: document.body }
     });
 
-    xrSession.addEventListener('end', endAR);
+    xrSession.addEventListener('end', onSessionEnd);
     xrSession.addEventListener('visibilitychange', () => {
-      warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
+      warningDiv.style.display = xrSession.visibilityState === 'visible-blurred' ? 'block' : 'none';
     });
 
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
@@ -88,56 +71,43 @@ async function startAR() {
     xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
 
     renderer.xr.setSession(xrSession);
-    renderer.setAnimationLoop(animate);
-
-    document.getElementById('modelSelector').style.display = 'none';
-    arButton.style.display = 'none';
+    menuDiv.style.display = 'none';
     exitButton.style.display = 'block';
+    animate();
   } catch (err) {
-    console.error("AR failed:", err);
-    alert("AR start failed: " + err.message);
+    alert("Failed to start AR: " + err.message);
   }
 }
 
 function endAR() {
-  if (xrSession) {
-    xrSession.end();
-    xrSession = null;
-  }
+  if (xrSession) xrSession.end();
+}
 
-  if (currentModel) scene.remove(currentModel);
+function onSessionEnd() {
+  renderer.setAnimationLoop(null);
+  scene.clear();
+  if (renderer.domElement) renderer.domElement.remove();
+  xrSession = null;
+  xrReferenceSpace = null;
+  xrHitTestSource = null;
   currentModel = null;
   modelAnchor = null;
 
-  document.getElementById('arButton').innerText = "Start AR";
-  document.getElementById('arButton').disabled = false;
-  document.getElementById('arButton').style.display = 'block';
-  document.getElementById('exitButton').style.display = 'none';
-  document.getElementById('modelSelector').style.display = 'block';
+  menuDiv.style.display = 'flex';
+  exitButton.style.display = 'none';
   warningDiv.style.display = 'none';
 
-  renderer.setAnimationLoop(null);
+  initScene();
 }
 
 function onTap() {
-  if (!renderer.xr.isPresenting || !xrSession) return;
-  const now = Date.now();
-  if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
-  lastPlacementTime = now;
+  if (!xrSession || Date.now() - lastPlacement < PLACEMENT_COOLDOWN) return;
+  lastPlacement = Date.now();
   placeModel();
 }
 
 async function placeModel() {
-  if (currentModel && modelAnchor) {
-    try {
-      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
-      modelAnchor?.cancel?.();
-      modelAnchor = anchor;
-    } catch (e) {
-      console.warn("Anchor update failed:", e);
-    }
-    return;
-  }
+  if (!selectedModel) return;
 
   if (currentModel) {
     scene.remove(currentModel);
@@ -149,7 +119,7 @@ async function placeModel() {
     currentModel.scale.set(0.1, 0.1, 0.1);
 
     const frame = renderer.xr.getFrame();
-    if (frame && xrHitTestSource) {
+    if (frame && xrHitTestSource && xrReferenceSpace) {
       const hits = frame.getHitTestResults(xrHitTestSource);
       if (hits.length > 0) {
         const pose = hits[0].getPose(xrReferenceSpace);
@@ -166,10 +136,10 @@ async function placeModel() {
     }
 
     if (!currentModel.parent) {
-      const xrCam = renderer.xr.getCamera(camera);
-      forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
-      currentModel.position.copy(xrCam.position).add(forward.multiplyScalar(1.5));
-      currentModel.quaternion.copy(xrCam.quaternion);
+      const cam = renderer.xr.getCamera(camera);
+      forward.set(0, 0, -1).applyQuaternion(cam.quaternion);
+      currentModel.position.copy(cam.position).add(forward.multiplyScalar(1.5));
+      currentModel.quaternion.copy(cam.quaternion);
     }
 
     scene.add(currentModel);
@@ -178,31 +148,24 @@ async function placeModel() {
   });
 }
 
-function animate(timestamp, frame) {
-  if (!frame || !xrSession) return;
-  render(frame);
+function animate() {
+  renderer.setAnimationLoop((timestamp, frame) => {
+    if (!frame) return;
 
-  const pose = frame.getViewerPose(xrReferenceSpace);
-  warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
-}
+    const pose = frame.getViewerPose(xrReferenceSpace);
+    warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
 
-function render(frame) {
-  if (renderer.xr.isPresenting) {
     const xrCam = renderer.xr.getCamera(camera);
-    const pos = xrCam.position;
-    const now = performance.now();
-
-    if (now - lastUpdate > 100) {
-      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
-      lastUpdate = now;
+    if (Date.now() - lastUpdate > 100) {
+      infoDiv.textContent = `Camera Position: X: ${xrCam.position.x.toFixed(2)}, Y: ${xrCam.position.y.toFixed(2)}, Z: ${xrCam.position.z.toFixed(2)}`;
+      lastUpdate = Date.now();
     }
 
     if (currentModel && !modelAnchor) {
       forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
-      targetPos.copy(xrCam.position).add(forward.multiplyScalar(1.5));
-      currentModel.position.copy(targetPos);
+      currentModel.position.copy(xrCam.position).add(forward.multiplyScalar(1.5));
     }
-  }
 
-  renderer.render(scene, camera);
+    renderer.render(scene, camera);
+  });
 }
