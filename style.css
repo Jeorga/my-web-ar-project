@@ -26,7 +26,7 @@ body {
   z-index: 200;
 }
 
-#arButton, #exitButton {
+#arButton {
   margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
@@ -40,10 +40,17 @@ body {
 
 #exitButton {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #ff4d4d; /* Red to indicate exit */
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+  display: none;
 }
 
 #modelSelector {

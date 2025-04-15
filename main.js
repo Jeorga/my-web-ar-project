@@ -17,8 +17,15 @@ window.onload = () => {
 };
 
 function initScene() {
+  // Create a fresh scene
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+  
+  if (renderer) {
+    // Clean up previous renderer if it exists
+    document.body.removeChild(renderer.domElement);
+  }
+  
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -74,6 +81,9 @@ async function startAR() {
   }
 
   try {
+    // Initialize a fresh scene
+    initScene();
+    
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
@@ -88,9 +98,11 @@ async function startAR() {
     xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
 
     renderer.xr.setSession(xrSession);
+    animate();
     document.getElementById('modelSelector').style.display = 'none';
     exitButton.style.display = 'block';
-    animate();
+    button.disabled = false;
+    button.innerText = "Start AR";
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
@@ -99,15 +111,27 @@ async function startAR() {
   }
 }
 
-async function exitAR() {
+function exitAR() {
   if (xrSession) {
-    await xrSession.end();
+    xrSession.end().catch(e => console.error("Error ending session:", e));
+  } else {
+    onSessionEnd();
   }
 }
 
 function onSessionEnd() {
+  if (renderer.xr.isPresenting) {
+    renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
+  }
+  
   renderer.setAnimationLoop(null);
-  xrSession = null;
+  
+  if (xrSession) {
+    xrSession.removeEventListener('end', onSessionEnd);
+    xrSession.removeEventListener('visibilitychange', onVisibilityChange);
+    xrSession = null;
+  }
+  
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
