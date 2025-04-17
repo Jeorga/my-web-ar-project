@@ -85,15 +85,3 @@ body {
   border-radius: 6px;
   z-index: 100;
 }
-
-#usdzButton {
-  display: none;
-  margin-top: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #2196F3;
-  color: white;
-  text-decoration: none;
-  border-radius: 8px;
-  z-index: 100;
-}
