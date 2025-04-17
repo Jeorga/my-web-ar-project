@@ -1,36 +1,157 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Add this meta tag for iOS compatibility -->
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <title>AR Page - Choose 3D Model</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- Critical iOS-specific tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>AR Experience</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000;
+      font-family: Arial, sans-serif;
+    }
+    #arButton {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 12px 24px;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 100;
+    }
+    #unsupported {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-align: center;
+      max-width: 80%;
+    }
+  </style>
 </head>
 <body>
-  <!-- Your existing content remains the same -->
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
-  <div id="loading">Loading model...</div>
-
-  <div id="modelSelector">
-    <label for="modelDropdown">Choose a model:</label>
-    <select id="modelDropdown">
-      <option value="aoiBa.glb">Model A</option>
-      <option value="aoiBtest.glb">Model B</option>
-    </select>
-    <button id="arButton">Start AR</button>
+  <div id="unsupported">
+    <h2>WebXR not supported</h2>
+    <p>Your browser/device doesn't support AR features. Try with:</p>
+    <ul>
+      <li>Chrome on Android 8+</li>
+      <li>Safari on iOS 12.2+</li>
+    </ul>
   </div>
+  
+  <button id="arButton">Start AR Experience</button>
 
-  <button id="exitButton">Exit AR</button>
-
-  <!-- Use newer versions of Three.js -->
+  <!-- Load Three.js from CDN -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
-  <!-- Add WebXR polyfill for older iOS devices -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/controls/XRControllerModelFactory.min.js"></script>
+  <!-- WebXR Polyfill for broader device support -->
   <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.min.js"></script>
-  <script src="main.js"></script>
+  
+  <script>
+    // Main application script
+    document.addEventListener('DOMContentLoaded', () => {
+      const arButton = document.getElementById('arButton');
+      const unsupportedMsg = document.getElementById('unsupported');
+      
+      // Initialize WebXR Polyfill if needed
+      if (typeof navigator.xr === 'undefined') {
+        new WebXRPolyfill();
+      }
+      
+      // Check for WebXR support
+      async function checkXRSupport() {
+        if (!navigator.xr) {
+          showUnsupported();
+          return false;
+        }
+        
+        try {
+          const supported = await navigator.xr.isSessionSupported('immersive-ar');
+          if (!supported) showUnsupported();
+          return supported;
+        } catch (error) {
+          console.error('XR support check failed:', error);
+          showUnsupported();
+          return false;
+        }
+      }
+      
+      function showUnsupported() {
+        unsupportedMsg.style.display = 'block';
+        arButton.style.display = 'none';
+      }
+      
+      // Main AR initialization
+      async function initXR() {
+        if (!await checkXRSupport()) return;
+        
+        // Set up Three.js scene
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.xr.enabled = true;
+        document.body.appendChild(renderer.domElement);
+        
+        // Add basic lighting
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+        light.position.set(0.5, 1, 0.25);
+        scene.add(light);
+        
+        // Handle AR session
+        arButton.addEventListener('click', async () => {
+          try {
+            const session = await navigator.xr.requestSession('immersive-ar', {
+              requiredFeatures: ['local-floor'],
+              optionalFeatures: ['hit-test', 'dom-overlay'],
+              domOverlay: { root: document.body }
+            });
+            
+            session.addEventListener('end', () => {
+              renderer.setAnimationLoop(null);
+              arButton.style.display = 'block';
+            });
+            
+            renderer.xr.setSession(session);
+            arButton.style.display = 'none';
+            
+            // Simple animation loop
+            renderer.setAnimationLoop(() => {
+              renderer.render(scene, camera);
+            });
+            
+          } catch (error) {
+            console.error('AR session failed:', error);
+            alert('Failed to start AR: ' + error.message);
+          }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+      }
+      
+      initXR();
+    });
+  </script>
 </body>
 </html>
