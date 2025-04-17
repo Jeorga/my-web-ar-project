@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
+let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton, usdzButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
@@ -8,21 +8,25 @@ const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
+let isIOS = false;
 
 window.onload = () => {
+  // Detect platform
+  const parser = Bowser.getParser(window.navigator.userAgent);
+  isIOS = parser.getOSName() === 'iOS';
+
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
   exitButton = document.getElementById('exitButton');
   exitButton.addEventListener('click', exitAR);
+  usdzButton = document.getElementById('usdzButton');
 };
 
 function initScene() {
-  // Create a fresh scene
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
   
   if (renderer) {
-    // Clean up previous renderer if it exists
     document.body.removeChild(renderer.domElement);
   }
   
@@ -65,8 +69,20 @@ async function startAR() {
   button.disabled = true;
   button.innerText = "Starting AR...";
 
+  if (isIOS) {
+    // iOS: Try AR.js or show USDZ fallback
+    const supported = await checkWebXRSupport();
+    if (!supported) {
+      startARjs(); // Use AR.js for iOS
+      button.disabled = false;
+      button.innerText = "Start AR";
+      return;
+    }
+  }
+
+  // Android: Proceed with WebXR
   if (!navigator.xr) {
-    alert("WebXR not supported");
+    showUSDZFallback();
     button.disabled = false;
     button.innerText = "Start AR";
     return;
@@ -74,14 +90,13 @@ async function startAR() {
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
   if (!supported) {
-    alert("immersive-ar not supported");
+    showUSDZFallback();
     button.disabled = false;
     button.innerText = "Start AR";
     return;
   }
 
   try {
-    // Initialize a fresh scene
     initScene();
     
     xrSession = await navigator.xr.requestSession('immersive-ar', {
@@ -105,10 +120,43 @@ async function startAR() {
     button.innerText = "Start AR";
   } catch (err) {
     console.error("Failed to start AR:", err);
-    alert("AR failed: " + err.message);
+    showUSDZFallback();
     button.disabled = false;
     button.innerText = "Start AR";
   }
+}
+
+async function checkWebXRSupport() {
+  if (!navigator.xr) return false;
+  return await navigator.xr.isSessionSupported('immersive-ar');
+}
+
+function startARjs() {
+  // Create A-Frame scene for AR.js
+  const aframeScene = document.createElement('a-scene');
+  aframeScene.setAttribute('embedded', '');
+  aframeScene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false;');
+  document.body.appendChild(aframeScene);
+
+  // Load selected model
+  const modelPath = `./assets/models/${modelDropdown.value}`;
+  const entity = document.createElement('a-entity');
+  entity.setAttribute('gltf-model', modelPath);
+  entity.setAttribute('scale', '0.1 0.1 0.1');
+  entity.setAttribute('position', '0 0 -1.5');
+  aframeScene.appendChild(entity);
+
+  document.getElementById('modelSelector').style.display = 'none';
+  exitButton.style.display = 'block';
+}
+
+function showUSDZFallback() {
+  // Show USDZ link for iOS
+  const selectedOption = modelDropdown.options[modelDropdown.selectedIndex];
+  const usdzPath = `./assets/models/${selectedOption.dataset.usdz}`;
+  usdzButton.href = usdzPath;
+  usdzButton.style.display = 'block';
+  alert("WebXR not supported. On iOS, use the 'View in AR' link for AR Quick Look.");
 }
 
 function exitAR() {
@@ -116,6 +164,12 @@ function exitAR() {
     xrSession.end().catch(e => console.error("Error ending session:", e));
   } else {
     onSessionEnd();
+  }
+
+  // Remove A-Frame scene if present
+  const aframeScene = document.querySelector('a-scene');
+  if (aframeScene) {
+    aframeScene.parentNode.removeChild(aframeScene);
   }
 }
 
@@ -143,6 +197,7 @@ function onSessionEnd() {
   document.getElementById('arButton').disabled = false;
   document.getElementById('modelSelector').style.display = 'block';
   exitButton.style.display = 'none';
+  usdzButton.style.display = 'none';
   warningDiv.style.display = 'none';
 }
 
