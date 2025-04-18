@@ -4,6 +4,26 @@ body {
   font-family: Arial, sans-serif;
 }
 
+#cameraFeed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: -1;
+}
+
+#arCanvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
 #info, #loading {
   position: absolute;
   top: 10px;
@@ -13,7 +33,7 @@ body {
   padding: 6px 10px;
   font-size: 14px;
   border-radius: 4px;
-  z-index: 100;
+  z-index: 10;
 }
 
 #loading {
@@ -23,34 +43,7 @@ body {
   font-size: 18px;
   padding: 12px 24px;
   display: none;
-  z-index: 200;
-}
-
-#arButton {
-  margin-top: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 100;
-}
-
-#exitButton {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 100;
-  display: none;
+  z-index: 20;
 }
 
 #modelSelector {
@@ -62,26 +55,13 @@ body {
   padding: 12px 20px;
   border-radius: 10px;
   color: white;
-  z-index: 100;
+  z-index: 10;
 }
 
-#modelSelector select {
+#modelSelector select,
+#modelSelector button {
   margin-left: 10px;
   font-size: 16px;
   padding: 4px 8px;
   border-radius: 4px;
-}
-
-#warning {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #ff4d4d;
-  background: rgba(0, 0, 0, 0.75);
-  padding: 16px 24px;
-  font-size: 16px;
-  display: none;
-  border-radius: 6px;
-  z-index: 100;
 }

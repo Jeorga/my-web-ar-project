@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AR Page - Choose 3D Model</title>
+  <title>AR Fallback - iOS Compatible</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
+  <video id="cameraFeed" autoplay muted playsinline></video>
+  <canvas id="arCanvas"></canvas>
+
+  <div id="info">Model Position: X: 0, Y: 0, Z: 0</div>
   <div id="loading">Loading model...</div>
 
   <div id="modelSelector">
@@ -17,14 +19,11 @@
       <option value="aoiBa.glb">Model A</option>
       <option value="aoiBtest.glb">Model B</option>
     </select>
-    <button id="arButton">Start AR</button>
+    <button id="placeButton">Place Model</button>
   </div>
-
-  <button id="exitButton">Exit AR</button>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
