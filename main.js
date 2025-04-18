@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, notSupportedDiv, modelDropdown, exitButton;
+let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
@@ -9,35 +9,11 @@ let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
 
-// Check for WebXR support
-async function checkXRSupport() {
-  if (!navigator.xr) {
-    document.getElementById('notSupported').style.display = 'flex';
-    return false;
-  }
-
-  try {
-    const supported = await navigator.xr.isSessionSupported('immersive-ar');
-    if (!supported) {
-      document.getElementById('notSupported').style.display = 'flex';
-      return false;
-    }
-    return true;
-  } catch (e) {
-    console.error("XR support check failed:", e);
-    document.getElementById('notSupported').style.display = 'flex';
-    return false;
-  }
-}
-
-window.onload = async () => {
-  const supported = await checkXRSupport();
-  if (supported) {
-    initScene();
-    document.getElementById('arButton').addEventListener('click', startAR);
-    exitButton = document.getElementById('exitButton');
-    exitButton.addEventListener('click', exitAR);
-  }
+window.onload = () => {
+  initScene();
+  document.getElementById('arButton').addEventListener('click', startAR);
+  exitButton = document.getElementById('exitButton');
+  exitButton.addEventListener('click', exitAR);
 };
 
 function initScene() {
@@ -48,11 +24,7 @@ function initScene() {
     document.body.removeChild(renderer.domElement);
   }
   
-  renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    alpha: true,
-    powerPreference: "high-performance"
-  });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
@@ -72,8 +44,6 @@ function initScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
-  // Use touch events for iOS
-  window.addEventListener('touchstart', onTap);
   window.addEventListener('click', onTap);
 }
 
@@ -88,32 +58,72 @@ function setupLighting() {
   scene.add(backlight);
 }
 
+async function requestDeviceMotionPermission() {
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission !== 'granted') {
+        alert('Device motion permission denied');
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.error('Error requesting device motion permission:', err);
+      return false;
+    }
+  }
+  return true;
+}
+
 async function startAR() {
   const button = document.getElementById('arButton');
   button.disabled = true;
   button.innerText = "Starting AR...";
 
+  // Initialize WebXR Polyfill
+  const polyfill = new WebXRPolyfill();
+
+  if (!navigator.xr) {
+    alert("WebXR not supported on this device");
+    button.disabled = false;
+    button.innerText = "Start AR";
+    return;
+  }
+
+  // Request device motion permission for iOS
+  const permissionGranted = await requestDeviceMotionPermission();
+  if (!permissionGranted) {
+    button.disabled = false;
+    button.innerText = "Start AR";
+    return;
+  }
+
+  const supported = await navigator.xr.isSessionSupported('immersive-ar');
+  if (!supported) {
+    alert("Immersive AR not supported on this device");
+    button.disabled = false;
+    button.innerText = "Start AR";
+    return;
+  }
+
   try {
     initScene();
     
-    const sessionInit = {
+    xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'dom-overlay']
-    };
-    
-    // iOS requires 'dom-overlay' with root element
-    if ('dom-overlay' in navigator.xr) {
-      sessionInit.domOverlay = { root: document.body };
-    }
-
-    xrSession = await navigator.xr.requestSession('immersive-ar', sessionInit);
+      optionalFeatures: ['hit-test', 'dom-overlay'],
+      domOverlay: { root: document.body }
+    });
 
     xrSession.addEventListener('end', onSessionEnd);
     xrSession.addEventListener('visibilitychange', onVisibilityChange);
 
     xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
     const viewSpace = await xrSession.requestReferenceSpace('viewer');
-    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
+    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace }).catch(err => {
+      console.warn("Hit-test source not available:", err);
+      return null;
+    });
 
     renderer.xr.setSession(xrSession);
     animate();
@@ -150,7 +160,10 @@ function onSessionEnd() {
     xrSession = null;
   }
   
-  xrHitTestSource = null;
+  if (xrHitTestSource) {
+    xrHitTestSource.cancel?.();
+    xrHitTestSource = null;
+  }
   xrReferenceSpace = null;
 
   if (currentModel) scene.remove(currentModel);
@@ -168,12 +181,7 @@ function onVisibilityChange() {
   warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
 }
 
-function onTap(event) {
-  // Prevent double taps on iOS
-  if (event.type === 'touchstart') {
-    event.preventDefault();
-  }
-  
+function onTap() {
   if (!renderer.xr.isPresenting || !xrSession) return;
   const now = Date.now();
   if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
@@ -184,7 +192,7 @@ function onTap(event) {
 async function placeModel() {
   if (currentModel && modelAnchor) {
     try {
-      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
+      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace).catch(() => null);
       if (anchor) {
         modelAnchor.cancel?.();
         modelAnchor = anchor;
@@ -216,7 +224,7 @@ async function placeModel() {
           currentModel.applyMatrix4(matrix);
 
           try {
-            modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
+            modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace).catch(() => null);
           } catch (e) {
             console.warn("Anchor creation failed:", e);
           }

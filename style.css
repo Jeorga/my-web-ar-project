@@ -1,10 +1,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  user-select: none;
+  font-family: Arial, sans-serif;
 }
 
 #info, #loading {
@@ -33,13 +30,12 @@ body {
   margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
-  background-color: #007AFF;
+  background-color: #4CAF50;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  -webkit-appearance: none;
 }
 
 #exitButton {
@@ -48,14 +44,13 @@ body {
   right: 20px;
   padding: 12px 24px;
   font-size: 16px;
-  background-color: #FF3B30;
+  background-color: #f44336;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
   display: none;
-  -webkit-appearance: none;
 }
 
 #modelSelector {
@@ -75,7 +70,6 @@ body {
   font-size: 16px;
   padding: 4px 8px;
   border-radius: 4px;
-  -webkit-appearance: none;
 }
 
 #warning {
@@ -90,21 +84,4 @@ body {
   display: none;
   border-radius: 6px;
   z-index: 100;
-}
-
-#notSupported {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: white;
-  color: black;
-  font-size: 18px;
-  text-align: center;
-  padding: 20px;
-  z-index: 1000;
 }
