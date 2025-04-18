@@ -3,13 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>AR Page - Choose 3D Model</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/webxr/XRControllerModelFactory.js"></script>
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
   <div id="warning">Tracking lost - move device slowly to recover</div>
   <div id="loading">Loading model...</div>
+  <div id="notSupported" style="display: none;">
+    WebXR AR not supported on this device. Please try on a compatible device.
+  </div>
 
   <div id="modelSelector">
     <label for="modelDropdown">Choose a model:</label>
@@ -22,8 +31,6 @@
 
   <button id="exitButton">Exit AR</button>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
+let infoDiv, warningDiv, loadingDiv, notSupportedDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
@@ -9,24 +9,50 @@ let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
 
-window.onload = () => {
-  initScene();
-  document.getElementById('arButton').addEventListener('click', startAR);
-  exitButton = document.getElementById('exitButton');
-  exitButton.addEventListener('click', exitAR);
+// Check for WebXR support
+async function checkXRSupport() {
+  if (!navigator.xr) {
+    document.getElementById('notSupported').style.display = 'flex';
+    return false;
+  }
+
+  try {
+    const supported = await navigator.xr.isSessionSupported('immersive-ar');
+    if (!supported) {
+      document.getElementById('notSupported').style.display = 'flex';
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("XR support check failed:", e);
+    document.getElementById('notSupported').style.display = 'flex';
+    return false;
+  }
+}
+
+window.onload = async () => {
+  const supported = await checkXRSupport();
+  if (supported) {
+    initScene();
+    document.getElementById('arButton').addEventListener('click', startAR);
+    exitButton = document.getElementById('exitButton');
+    exitButton.addEventListener('click', exitAR);
+  }
 };
 
 function initScene() {
-  // Create a fresh scene
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
   
   if (renderer) {
-    // Clean up previous renderer if it exists
     document.body.removeChild(renderer.domElement);
   }
   
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: true,
+    powerPreference: "high-performance"
+  });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
@@ -46,6 +72,8 @@ function initScene() {
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
 
+  // Use touch events for iOS
+  window.addEventListener('touchstart', onTap);
   window.addEventListener('click', onTap);
 }
 
@@ -65,30 +93,20 @@ async function startAR() {
   button.disabled = true;
   button.innerText = "Starting AR...";
 
-  if (!navigator.xr) {
-    alert("WebXR not supported");
-    button.disabled = false;
-    button.innerText = "Start AR";
-    return;
-  }
-
-  const supported = await navigator.xr.isSessionSupported('immersive-ar');
-  if (!supported) {
-    alert("immersive-ar not supported");
-    button.disabled = false;
-    button.innerText = "Start AR";
-    return;
-  }
-
   try {
-    // Initialize a fresh scene
     initScene();
     
-    xrSession = await navigator.xr.requestSession('immersive-ar', {
+    const sessionInit = {
       requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
-      domOverlay: { root: document.body }
-    });
+      optionalFeatures: ['hit-test', 'dom-overlay']
+    };
+    
+    // iOS requires 'dom-overlay' with root element
+    if ('dom-overlay' in navigator.xr) {
+      sessionInit.domOverlay = { root: document.body };
+    }
+
+    xrSession = await navigator.xr.requestSession('immersive-ar', sessionInit);
 
     xrSession.addEventListener('end', onSessionEnd);
     xrSession.addEventListener('visibilitychange', onVisibilityChange);
@@ -150,7 +168,12 @@ function onVisibilityChange() {
   warningDiv.style.display = xrSession?.visibilityState === 'visible-blurred' ? 'block' : 'none';
 }
 
-function onTap() {
+function onTap(event) {
+  // Prevent double taps on iOS
+  if (event.type === 'touchstart') {
+    event.preventDefault();
+  }
+  
   if (!renderer.xr.isPresenting || !xrSession) return;
   const now = Date.now();
   if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
