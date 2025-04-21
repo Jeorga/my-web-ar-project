@@ -2,16 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>iOS AR Fallback</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iOS AR Quick Look - Multiple Models</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <select id="model-selector">
-    <option value="model1.glb">Model 1</option>
-    <option value="model2.glb">Model 2</option>
-  </select>
-  <div id="tap-instruction">Tap to place the object</div>
-  <script type="module" src="main.js"></script>
+  <div class="container">
+    <h1>Select a Model to View in AR</h1>
+
+    <!-- Dropdown for model selection -->
+    <select id="modelSelect">
+      <option value="aoiBaUsdz.usdz">Model 1</option>
+      <option value="aoiBtestUsdz.usdz">Model 2</option>
+    </select>
+
+    <!-- AR Quick Look button (dynamically updated) -->
+    <a id="arLink" rel="ar" href="assets/model1.usdz">
+      <button class="ar-button">Tap to View in AR</button>
+    </a>
+
+    <p class="note">Works on iOS Safari only</p>
+  </div>
+
+  <script src="main.js"></script>
 </body>
 </html>
