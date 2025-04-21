@@ -3,37 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cross-Platform AR Viewer</title>
+  <title>WebAR Viewer</title>
   <link rel="stylesheet" href="style.css" />
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1>Select a Model to View in AR</h1>
+  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
+  <div id="warning">Tracking lost - move device slowly to recover</div>
+  <div id="loading">Loading model...</div>
 
-    <!-- Model Selection Dropdown -->
-    <select id="modelSelect">
-      <option value="aoiBaSmoll">Model 1</option>
-      <option value="aoiBtestUsdz">Model 2</option>
+  <div id="modelSelector">
+    <label for="modelDropdown">Choose a model:</label>
+    <select id="modelDropdown">
+      <option value="aoiBa.glb">Model A</option>
+      <option value="aoiBtest.glb">Model B</option>
     </select>
-
-    <!-- Model Viewer Component -->
-    <model-viewer
-      id="modelViewer"
-      src="assets/models/aoiBa_compressed.glb"
-      ios-src="assets/models/aoiBaSmoll.usdz"
-      ar
-      ar-modes="scene-viewer quick-look webxr"
-      auto-rotate
-      camera-controls
-      style="width: 100%; max-width: 600px; height: 500px; margin: 20px auto;"
-    >
-      <button slot="ar-button" class="ar-button">View in AR</button>
-    </model-viewer>
-
-    <p class="note">AR works on iOS Safari and Android Chrome</p>
+    <button id="arButton">Start AR</button>
   </div>
 
+  <button id="exitButton">Exit AR</button>
+  <div id="notSupportedMsg">This experience is best viewed on a smartphone or tablet.</div>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <!-- Main logic -->
   <script src="main.js"></script>
 </body>
 </html>

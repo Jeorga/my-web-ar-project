@@ -1,45 +1,101 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #f9f9f9;
-  color: #333;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  text-align: center;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
 }
 
-.container {
-  padding: 20px;
-  width: 100%;
-  max-width: 700px;
+#info, #loading {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  z-index: 100;
 }
 
-select {
-  padding: 10px;
+#loading {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+  padding: 12px 24px;
+  display: none;
+  z-index: 200;
+}
+
+#arButton {
+  margin-top: 10px;
+  padding: 12px 24px;
   font-size: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
-}
-
-.ar-button {
-  background-color: #007aff;
+  background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 12px 20px;
-  font-size: 16px;
-  border-radius: 10px;
+  border-radius: 8px;
   cursor: pointer;
+  z-index: 100;
 }
 
-.ar-button:hover {
-  background-color: #005fcc;
+#exitButton {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+  display: none;
 }
 
-.note {
-  margin-top: 12px;
-  color: #777;
-  font-size: 14px;
+#modelSelector {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: white;
+  z-index: 100;
+}
+
+#modelSelector select {
+  margin-left: 10px;
+  font-size: 16px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+#warning {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ff4d4d;
+  background: rgba(0, 0, 0, 0.75);
+  padding: 16px 24px;
+  font-size: 16px;
+  display: none;
+  border-radius: 6px;
+  z-index: 100;
+}
+
+#notSupportedMsg {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  background: rgba(255, 0, 0, 0.8);
+  padding: 16px 24px;
+  border-radius: 10px;
+  font-size: 18px;
+  z-index: 1000;
+  display: none;
 }
