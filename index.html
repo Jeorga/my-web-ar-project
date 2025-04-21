@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AR Fallback - iOS Compatible</title>
+  <title>AR Page - Orientation Based</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <video id="cameraFeed" autoplay muted playsinline></video>
-  <canvas id="arCanvas"></canvas>
-
-  <div id="info">Model Position: X: 0, Y: 0, Z: 0</div>
+  <div id="info">Device Rotation: Alpha: 0, Beta: 0, Gamma: 0</div>
   <div id="loading">Loading model...</div>
 
   <div id="modelSelector">
@@ -19,7 +16,7 @@
       <option value="aoiBa.glb">Model A</option>
       <option value="aoiBtest.glb">Model B</option>
     </select>
-    <button id="placeButton">Place Model</button>
+    <button id="startButton">Start AR</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>

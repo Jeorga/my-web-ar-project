@@ -1,91 +1,78 @@
-let scene, camera, renderer, loader, model, infoDiv, loadingDiv, modelDropdown;
-let modelPlaced = false;
+let scene, camera, renderer, model, loader, infoDiv;
+let alpha = 0, beta = 0, gamma = 0;
 
-window.onload = async () => {
-  infoDiv = document.getElementById("info");
-  loadingDiv = document.getElementById("loading");
-  modelDropdown = document.getElementById("modelDropdown");
-  document.getElementById("placeButton").addEventListener("click", loadAndPlaceModel);
-
-  await startCameraFeed();
+window.onload = () => {
   initScene();
-  animate();
-};
 
-async function startCameraFeed() {
-  const video = document.getElementById("cameraFeed");
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    video.srcObject = stream;
-  } catch (err) {
-    alert("Camera access denied.");
-    console.error(err);
-  }
-}
+  document.getElementById("startButton").addEventListener("click", () => {
+    const selectedModel = document.getElementById("modelDropdown").value;
+    loadModel(`./assets/models/${selectedModel}`);
+  });
+
+  window.addEventListener("deviceorientation", handleOrientation, true);
+};
 
 function initScene() {
   scene = new THREE.Scene();
 
-  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 1000);
-  camera.position.set(0, 0, 5);
+  camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.z = 2;
 
-  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("arCanvas"), alpha: true, antialias: true });
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
+  document.body.appendChild(renderer.domElement);
 
   loader = new THREE.GLTFLoader();
+  infoDiv = document.getElementById("info");
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 3);
-  directionalLight.position.set(1, 3, 2);
-  scene.add(ambientLight, directionalLight);
+  const light = new THREE.HemisphereLight(0xffffff, 0x444444, 2);
+  scene.add(light);
 
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  // Optional: tap to reposition
-  window.addEventListener('click', (e) => {
-    if (model) {
-      const mouse = new THREE.Vector2(
-        (e.clientX / window.innerWidth) * 2 - 1,
-        -(e.clientY / window.innerHeight) * 2 + 1
-      );
-      model.position.set(mouse.x * 2, mouse.y * 2, 0);
-    }
-  });
+  animate();
 }
 
-function loadAndPlaceModel() {
+function handleOrientation(event) {
+  alpha = event.alpha || 0;
+  beta = event.beta || 0;
+  gamma = event.gamma || 0;
+
+  infoDiv.textContent = `Device Rotation: Alpha: ${alpha.toFixed(1)}, Beta: ${beta.toFixed(1)}, Gamma: ${gamma.toFixed(1)}`;
+}
+
+function loadModel(url) {
+  const loading = document.getElementById("loading");
+  loading.style.display = "block";
+
   if (model) {
     scene.remove(model);
     model = null;
   }
 
-  const modelPath = `./assets/models/${modelDropdown.value}`;
-  loadingDiv.style.display = "block";
-
-  loader.load(modelPath, (gltf) => {
+  loader.load(url, (gltf) => {
     model = gltf.scene;
     model.scale.set(0.1, 0.1, 0.1);
     model.position.set(0, 0, 0);
     scene.add(model);
-    loadingDiv.style.display = "none";
-    modelPlaced = true;
-  }, undefined, (err) => {
-    loadingDiv.style.display = "none";
+    loading.style.display = "none";
+  }, undefined, err => {
+    console.error("Error loading model:", err);
     alert("Failed to load model.");
-    console.error(err);
+    loading.style.display = "none";
   });
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  if (modelPlaced && model) {
-    const pos = model.position;
-    infoDiv.textContent = `Model Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
+
+  if (model) {
+    const euler = new THREE.Euler(
+      THREE.MathUtils.degToRad(beta),
+      THREE.MathUtils.degToRad(alpha),
+      THREE.MathUtils.degToRad(-gamma),
+      'YXZ'
+    );
+    model.setRotationFromEuler(euler);
   }
+
   renderer.render(scene, camera);
 }

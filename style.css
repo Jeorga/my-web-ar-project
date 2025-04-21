@@ -2,26 +2,7 @@ body {
   margin: 0;
   overflow: hidden;
   font-family: Arial, sans-serif;
-}
-
-#cameraFeed {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: -1;
-}
-
-#arCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 0;
-  pointer-events: none;
+  background-color: black;
 }
 
 #info, #loading {
@@ -33,7 +14,7 @@ body {
   padding: 6px 10px;
   font-size: 14px;
   border-radius: 4px;
-  z-index: 10;
+  z-index: 100;
 }
 
 #loading {
@@ -43,7 +24,6 @@ body {
   font-size: 18px;
   padding: 12px 24px;
   display: none;
-  z-index: 20;
 }
 
 #modelSelector {
@@ -55,13 +35,23 @@ body {
   padding: 12px 20px;
   border-radius: 10px;
   color: white;
-  z-index: 10;
+  z-index: 100;
 }
 
-#modelSelector select,
-#modelSelector button {
+#modelSelector select {
   margin-left: 10px;
   font-size: 16px;
   padding: 4px 8px;
   border-radius: 4px;
+}
+
+#startButton {
+  margin-top: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
