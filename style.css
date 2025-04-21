@@ -1,8 +1,49 @@
 body {
   margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #f9f9f9;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
   overflow: hidden;
-  font-family: Arial, sans-serif;
-  background-color: black;
+}
+
+.container {
+  text-align: center;
+  padding: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+select {
+  padding: 10px;
+  font-size: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.ar-button {
+  background-color: #007aff;
+  color: white;
+  border: none;
+  padding: 14px 24px;
+  font-size: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.ar-button:hover {
+  background-color: #005fcc;
+}
+
+.ar-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 #info, #loading {
@@ -23,20 +64,7 @@ body {
   transform: translate(-50%, -50%);
   font-size: 18px;
   padding: 12px 24px;
-  display: none;
   z-index: 200;
-}
-
-#arButton {
-  margin-top: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 100;
 }
 
 #exitButton {
@@ -51,26 +79,6 @@ body {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  display: none;
-}
-
-#modelSelector {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 12px 20px;
-  border-radius: 10px;
-  color: white;
-  z-index: 100;
-}
-
-#modelSelector select {
-  margin-left: 10px;
-  font-size: 16px;
-  padding: 4px 8px;
-  border-radius: 4px;
 }
 
 #warning {
@@ -82,21 +90,12 @@ body {
   background: rgba(0, 0, 0, 0.75);
   padding: 16px 24px;
   font-size: 16px;
-  display: none;
   border-radius: 6px;
   z-index: 100;
 }
 
-#unsupportedMessage {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  background-color: rgba(0, 0, 0, 0.85);
-  padding: 20px;
-  border-radius: 10px;
-  display: none;
-  z-index: 1000;
-  text-align: center;
+.note {
+  margin-top: 12px;
+  color: #777;
+  font-size: 14px;
 }

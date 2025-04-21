@@ -2,30 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AR Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Experience - iOS & Android</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
-  <div id="loading">Loading model...</div>
+  <div class="container">
+    <h1>Select a Model to View in AR</h1>
 
-  <div id="modelSelector">
-    <label for="modelDropdown">Choose a model:</label>
-    <select id="modelDropdown">
-      <option value="aoiBa">Model A</option>
-      <option value="aoiBtest">Model B</option>
+    <!-- Model selection dropdown -->
+    <select id="modelSelect">
+      <option value="aoiBa" data-ios="aoiBaSmoll.usdz" data-android="aoiBa.glb">Model A</option>
+      <option value="aoiBtest" data-ios="aoiBtestUsdz.usdz" data-android="aoiBtest.glb">Model B</option>
     </select>
-    <button id="arButton">Start AR</button>
+
+    <!-- AR activation button/link -->
+    <div id="arContainer">
+      <a id="iosARLink" rel="ar" style="display: none;">
+        <button class="ar-button">Tap to View in AR</button>
+      </a>
+      <button id="androidARButton" class="ar-button" style="display: none;">Start AR</button>
+    </div>
+
+    <!-- UI elements for Android WebXR -->
+    <div id="info" style="display: none;">Camera Position: X: 0, Y: 0, Z: 0</div>
+    <div id="warning" style="display: none;">Tracking lost - move device slowly to recover</div>
+    <div id="loading" style="display: none;">Loading model...</div>
+    <button id="exitButton" style="display: none;">Exit AR</button>
+
+    <p id="note" class="note"></p>
   </div>
 
-  <button id="exitButton">Exit AR</button>
-  <div id="unsupportedMessage">This AR experience is only available on Android and iOS devices.</div>
-
-  <!-- Scripts -->
+  <!-- Load Three.js and GLTFLoader via CDN for Android -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <!-- Load JavaScript files -->
+  <script src="iosAR.js"></script>
+  <script src="androidAR.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
