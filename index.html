@@ -3,31 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebAR Viewer</title>
+  <title>Cross-Platform AR Viewer</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
-  <div id="loading">Loading model...</div>
-
-  <div id="modelSelector">
-    <label for="modelDropdown">Choose a model:</label>
-    <select id="modelDropdown">
-      <option value="aoiBa.glb">Model A</option>
-      <option value="aoiBtest.glb">Model B</option>
+  <!-- iOS Quick Look Section -->
+  <div class="container" id="iosSection">
+    <h1>Select a Model to View in AR</h1>
+    <select id="modelSelect">
+      <option value="aoiBaSmoll.usdz">Model 1</option>
+      <option value="aoiBtestUsdz.usdz">Model 2</option>
     </select>
-    <button id="arButton">Start AR</button>
+    <a id="arLink" rel="ar">
+      <button class="ar-button">Tap to View in AR</button>
+    </a>
+    <p class="note">Works on iOS Safari only</p>
   </div>
 
-  <button id="exitButton">Exit AR</button>
-  <div id="notSupportedMsg">This experience is best viewed on a smartphone or tablet.</div>
+  <!-- Android WebXR Section -->
+  <div id="androidSection">
+    <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
+    <div id="warning">Tracking lost - move device slowly to recover</div>
+    <div id="loading">Loading model...</div>
 
-  <!-- Three.js -->
+    <div id="modelSelector">
+      <label for="modelDropdown">Choose a model:</label>
+      <select id="modelDropdown">
+        <option value="aoiBa.glb">Model A</option>
+        <option value="aoiBtest.glb">Model B</option>
+      </select>
+      <button id="arButton">Start AR</button>
+    </div>
+
+    <button id="exitButton">Exit AR</button>
+  </div>
+
+  <!-- Unsupported Message -->
+  <div id="unsupportedMessage">
+    <h2>Unsupported Device</h2>
+    <p>This AR experience works only on iOS Safari or Android smartphones with AR capabilities.</p>
+  </div>
+
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-
-  <!-- Main logic -->
   <script src="main.js"></script>
 </body>
 </html>
