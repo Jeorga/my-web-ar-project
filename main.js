@@ -1,22 +1,10 @@
-function isiOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
 window.addEventListener('DOMContentLoaded', () => {
   const modelSelect = document.getElementById('modelSelect');
-  const arLink = document.getElementById('arLink');
+  const modelViewer = document.getElementById('modelViewer');
 
-  // Set default model
-  arLink.href = `assets/models/${modelSelect.value}`;
-
-  // Update model when dropdown changes
   modelSelect.addEventListener('change', () => {
-    const selectedModel = modelSelect.value;
-    arLink.href = `assets/models/${selectedModel}`;
+    const selected = modelSelect.value;
+    modelViewer.src = `assets/models/${selected}.glb`;
+    modelViewer.iosSrc = `assets/models/${selected}.usdz`;
   });
-
-  // Show message if not on iOS
-  if (!isiOS()) {
-    document.querySelector('.note').textContent = "This feature only works on iOS Safari.";
-  }
 });

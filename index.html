@@ -3,25 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iOS AR Quick Look - Multiple Models</title>
+  <title>Cross-Platform AR Viewer</title>
   <link rel="stylesheet" href="style.css" />
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>Select a Model to View in AR</h1>
 
-    <!-- Dropdown for model selection -->
+    <!-- Model Selection Dropdown -->
     <select id="modelSelect">
-      <option value="aoiBaSmoll.usdz">Model 1</option>
-      <option value="aoiBtestUsdz.usdz">Model 2</option>
+      <option value="aoiBaSmoll">Model 1</option>
+      <option value="aoiBtestUsdz">Model 2</option>
     </select>
 
-    <!-- AR Quick Look button -->
-    <a id="arLink" rel="ar">
-      <button class="ar-button">Tap to View in AR</button>
-    </a>
+    <!-- Model Viewer Component -->
+    <model-viewer
+      id="modelViewer"
+      src="assets/models/aoiBa_compressed.glb"
+      ios-src="assets/models/aoiBaSmoll.usdz"
+      ar
+      ar-modes="scene-viewer quick-look webxr"
+      auto-rotate
+      camera-controls
+      style="width: 100%; max-width: 600px; height: 500px; margin: 20px auto;"
+    >
+      <button slot="ar-button" class="ar-button">View in AR</button>
+    </model-viewer>
 
-    <p class="note">Works on iOS Safari only</p>
+    <p class="note">AR works on iOS Safari and Android Chrome</p>
   </div>
 
   <script src="main.js"></script>
