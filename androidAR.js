@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, exitButton;
+let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
@@ -9,27 +9,21 @@ let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
 
-function initAndroidAR(modelSelect, arButton) {
-  infoDiv = document.getElementById('info');
-  warningDiv = document.getElementById('warning');
-  loadingDiv = document.getElementById('loading');
-  exitButton = document.getElementById('exitButton');
-
-  arButton.addEventListener('click', () => startAR(modelSelect, arButton));
-  exitButton.addEventListener('click', exitAR);
-
+window.onload = () => {
   initScene();
-  window.addEventListener('click', onTap);
-}
+  document.getElementById('arButton').addEventListener('click', startAR);
+  exitButton = document.getElementById('exitButton');
+  exitButton.addEventListener('click', exitAR);
+};
 
 function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-
+  
   if (renderer) {
     document.body.removeChild(renderer.domElement);
   }
-
+  
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,6 +31,23 @@ function initScene() {
   renderer.xr.setReferenceSpaceType('local-floor');
   document.body.appendChild(renderer.domElement);
 
+  setupLighting();
+
+  infoDiv = document.getElementById('info');
+  warningDiv = document.getElementById('warning');
+  loadingDiv = document.getElementById('loading');
+  modelDropdown = document.getElementById('modelDropdown');
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  window.addEventListener('click', onTap);
+}
+
+function setupLighting() {
   scene.add(new THREE.AmbientLight(0xffffff, 1.5));
   const directional = new THREE.DirectionalLight(0xffffff, 20);
   directional.position.set(1, 3, 2);
@@ -45,15 +56,10 @@ function initScene() {
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
 }
 
-async function startAR(modelSelect, button) {
+async function startAR() {
+  const button = document.getElementById('arButton');
   button.disabled = true;
   button.innerText = "Starting AR...";
 
@@ -66,7 +72,7 @@ async function startAR(modelSelect, button) {
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
   if (!supported) {
-    alert("Immersive AR not supported");
+    alert("immersive-ar not supported");
     button.disabled = false;
     button.innerText = "Start AR";
     return;
@@ -74,6 +80,7 @@ async function startAR(modelSelect, button) {
 
   try {
     initScene();
+    
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
@@ -89,11 +96,10 @@ async function startAR(modelSelect, button) {
 
     renderer.xr.setSession(xrSession);
     animate();
-    document.getElementById('arContainer').style.display = 'none';
+    document.getElementById('modelSelector').style.display = 'none';
     exitButton.style.display = 'block';
     button.disabled = false;
     button.innerText = "Start AR";
-    placeModel(modelSelect);
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
@@ -114,15 +120,15 @@ function onSessionEnd() {
   if (renderer.xr.isPresenting) {
     renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
   }
-
+  
   renderer.setAnimationLoop(null);
-
+  
   if (xrSession) {
     xrSession.removeEventListener('end', onSessionEnd);
     xrSession.removeEventListener('visibilitychange', onVisibilityChange);
     xrSession = null;
   }
-
+  
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
@@ -130,13 +136,11 @@ function onSessionEnd() {
   currentModel = null;
   modelAnchor = null;
 
-  document.getElementById('androidARButton').innerText = "Start AR";
-  document.getElementById('androidARButton').disabled = false;
-  document.getElementById('arContainer').style.display = 'block';
+  document.getElementById('arButton').innerText = "Start AR";
+  document.getElementById('arButton').disabled = false;
+  document.getElementById('modelSelector').style.display = 'block';
   exitButton.style.display = 'none';
   warningDiv.style.display = 'none';
-  infoDiv.style.display = 'none';
-  loadingDiv.style.display = 'none';
 }
 
 function onVisibilityChange() {
@@ -148,10 +152,10 @@ function onTap() {
   const now = Date.now();
   if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
   lastPlacementTime = now;
-  placeModel(document.getElementById('modelSelect'));
+  placeModel();
 }
 
-async function placeModel(modelSelect) {
+async function placeModel() {
   if (currentModel && modelAnchor) {
     try {
       const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
@@ -170,11 +174,8 @@ async function placeModel(modelSelect) {
     currentModel = null;
   }
 
-  const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-  const modelPath = `assets/models/${selectedOption.dataset.android}`;
+  const modelPath = `./assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
-  infoDiv.style.display = 'block';
-
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
     currentModel.scale.set(0.1, 0.1, 0.1);
