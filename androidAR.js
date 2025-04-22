@@ -174,7 +174,7 @@ async function placeModel() {
     currentModel = null;
   }
 
-  const modelPath = `./assets/models/${modelDropdown.value}`;
+  const modelPath = `/ARWEB-TXTEST/assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
