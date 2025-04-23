@@ -7,16 +7,17 @@
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/webxr/ARButton.js"></script>
 </head>
 <body>
-  <div id="menu">
+  <div id="ui">
     <select id="modelSelector">
       <option value="assets/models/boxtest.glb">Object A</option>
-      <option value="assets/sAoiTest.glb">Object B</option>
-      <option value="assets/sAoiTestA.glb">Object C</option>
+      <option value="assets/models/sAoiTest.glb">Object B</option>
+      <option value="assets/models/sAoiTestA.glb">Object C</option>
     </select>
+    <button id="startAR">Enter AR</button>
   </div>
+
   <script type="module" src="main.js"></script>
 </body>
 </html>
