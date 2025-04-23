@@ -3,16 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to AR Experience</title>
+  <title>Android WebAR</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="container">
-    <h1>Welcome to Our AR Experience</h1>
-    <p>Explore 3D models in augmented reality on your smartphone or tablet.</p>
-    <button id="enterButton" class="ar-button">Enter AR</button>
-    <p class="note">Works on iOS (Safari) and Android (Chrome) devices.</p>
+  <div id="ui">
+    <select id="modelSelector">
+      <option value="assets/model1.glb">Model 1</option>
+      <option value="assets/model2.glb">Model 2</option>
+      <option value="assets/model3.glb">Model 3</option>
+    </select>
   </div>
-  <script src="main.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js"></script>
+  <script type="module" src="main.js"></script>
 </body>
 </html>
