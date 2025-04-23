@@ -1,54 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, user-scalable=no"
-    />
-    <meta name="description" content="WebAR App for Android" />
-    <title>WebAR Experience</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- A-Frame for 3D scene management -->
-    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <!-- AR.js for WebAR with WebXR support -->
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
-    <!-- Custom script for interaction -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AR Web Experience for Android">
+    <title>AR Web Viewer for Android</title>
+    
+    <!-- Model Viewer component -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+</head>
+<body>
+    <header>
+        <h1>AR Object Viewer</h1>
+        <p>Tap anywhere to place the 3D object in your space</p>
+    </header>
+    
+    <main>
+        <!-- Model selection buttons -->
+        <div class="model-selector">
+            <button data-model="assets/models/boxtest.glb">boxtest</button>
+            <button data-model="assets/models/sAoiTest.glb">sAoiTest</button>
+            <button data-model="assets/models/sAoiTestA.glb">sAoiTestA</button>
+        </div>
+        
+        <!-- AR View Container -->
+        <div class="ar-container">
+            <model-viewer 
+                id="ar-model"
+                ar 
+                ar-modes="webxr scene-viewer quick-look" 
+                camera-controls 
+                environment-image="neutral" 
+                shadow-intensity="1"
+                auto-rotate
+                ar-scale="fixed"
+                ar-placement="floor"
+                style="width: 100%; height: 100%;">
+                
+                <!-- Loading indicator -->
+                <div class="progress-bar hide" slot="progress-bar">
+                    <div class="update-bar"></div>
+                </div>
+                
+                <!-- AR prompt button -->
+                <button slot="ar-button" id="ar-button">
+                    View in AR
+                </button>
+                
+                <!-- Error message -->
+                <div id="error-message" class="error-message"></div>
+            </model-viewer>
+        </div>
+    </main>
+    
+    <footer>
+        <p>Move your device to view the object in your space</p>
+    </footer>
+    
     <script src="main.js"></script>
-  </head>
-  <body>
-    <!-- UI for model selection -->
-    <div id="ui">
-      <button onclick="selectModel(0)">Model 1</button>
-      <button onclick="selectModel(1)">Model 2</button>
-      <button onclick="selectModel(2)">Model 3</button>
-    </div>
-
-    <!-- A-Frame Scene -->
-    <a-scene
-      vr-mode-ui="enabled: false"
-      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-      renderer="logarithmicDepthBuffer: true;"
-      webxr="referenceSpaceType: local-floor"
-      embedded
-    >
-      <!-- Assets for 3D models -->
-      <a-assets timeout="30000">
-        <a-asset-item id="model1" src="assets/models/boxtest.glb"></a-asset-item>
-        <a-asset-item id="model2" src="assets/models/sAoiTest.glb"></a-asset-item>
-        <a-asset-item id="model3" src="assets/models/sAoiTestA.glb"></a-asset-item>
-      </a-assets>
-
-      <!-- Camera with cursor for tap interaction -->
-      <a-camera
-        id="camera"
-        position="0 1.6 0"
-        raycaster="objects: .clickable"
-        cursor="fuse: false; rayOrigin: mouse;"
-      ></a-camera>
-
-      <!-- Entity to hold the current model -->
-      <a-entity id="model-container" class="clickable" place-model></a-entity>
-    </a-scene>
-  </body>
+</body>
 </html>
