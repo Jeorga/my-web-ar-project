@@ -1,23 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android WebAR</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-  <div id="ui">
-    <select id="modelSelector">
-      <option value="assets/boxtest.glb">Model 1</option>
-      <option value="assets/sAoiTest.glb">Model 2</option>
-      <option value="assets/sAoiTestA.glb">Model 3</option>
-    </select>
-  </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <meta name="description" content="WebAR App for Android" />
+    <title>WebAR Experience</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- A-Frame for 3D scene management -->
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <!-- AR.js for WebAR with WebXR support -->
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <!-- Custom script for interaction -->
+    <script src="main.js"></script>
+  </head>
+  <body>
+    <!-- UI for model selection -->
+    <div id="ui">
+      <button onclick="selectModel(0)">Model 1</button>
+      <button onclick="selectModel(1)">Model 2</button>
+      <button onclick="selectModel(2)">Model 3</button>
+    </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/webxr/ARButton.js"></script>
-  <script type="module" src="main.js"></script>
-</body>
+    <!-- A-Frame Scene -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+      renderer="logarithmicDepthBuffer: true;"
+      webxr="referenceSpaceType: local-floor"
+      embedded
+    >
+      <!-- Assets for 3D models -->
+      <a-assets timeout="30000">
+        <a-asset-item id="model1" src="assets/models/boxtest.glb"></a-asset-item>
+        <a-asset-item id="model2" src="assets/models/sAoiTest.glb"></a-asset-item>
+        <a-asset-item id="model3" src="assets/models/sAoiTestA.glb"></a-asset-item>
+      </a-assets>
+
+      <!-- Camera with cursor for tap interaction -->
+      <a-camera
+        id="camera"
+        position="0 1.6 0"
+        raycaster="objects: .clickable"
+        cursor="fuse: false; rayOrigin: mouse;"
+      ></a-camera>
+
+      <!-- Entity to hold the current model -->
+      <a-entity id="model-container" class="clickable" place-model></a-entity>
+    </a-scene>
+  </body>
 </html>

@@ -1,108 +1,54 @@
-import * as THREE from 'three';
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
+const models = ["model1", "model2", "model3"];
+let currentModelIndex = 0;
+let modelPlaced = false;
 
-let camera, scene, renderer;
-let controller;
-let reticle;
-let currentModel = null;
-let modelURL = 'assets/model1.glb';
+// Custom A-Frame component for placing models
+AFRAME.registerComponent("place-model", {
+  init: function () {
+    const sceneEl = document.querySelector("a-scene");
+    const modelContainer = this.el;
 
-init();
-animate();
-
-function init() {
-  const container = document.createElement('div');
-  document.body.appendChild(container);
-
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera();
-
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  container.appendChild(renderer.domElement);
-
-  document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
-
-  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
-  scene.add(light);
-
-  const modelSelector = document.getElementById('modelSelector');
-  modelSelector.addEventListener('change', (e) => {
-    modelURL = e.target.value;
-    if (currentModel) {
-      scene.remove(currentModel);
-      currentModel = null;
-    }
-  });
-
-  const loader = new THREE.GLTFLoader();
-  const hitTestSource = { current: null };
-  let hitTestSourceRequested = false;
-
-  controller = renderer.xr.getController(0);
-  controller.addEventListener('select', () => {
-    if (reticle.visible && !currentModel) {
-      loader.load(modelURL, (gltf) => {
-        currentModel = gltf.scene;
-        currentModel.position.setFromMatrixPosition(reticle.matrix);
-        currentModel.scale.set(0.5, 0.5, 0.5);
-        scene.add(currentModel);
-      });
-    }
-  });
-  scene.add(controller);
-
-  const geometry = new THREE.RingGeometry(0.1, 0.15, 32).rotateX(-Math.PI / 2);
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-  reticle = new THREE.Mesh(geometry, material);
-  reticle.matrixAutoUpdate = false;
-  reticle.visible = false;
-  scene.add(reticle);
-
-  renderer.setAnimationLoop((timestamp, frame) => {
-    if (frame) {
-      const referenceSpace = renderer.xr.getReferenceSpace();
-      const session = renderer.xr.getSession();
-
-      if (!hitTestSourceRequested) {
-        session.requestReferenceSpace('viewer').then((viewerSpace) => {
-          session.requestHitTestSource({ space: viewerSpace }).then((source) => {
-            hitTestSource.current = source;
-          });
-        });
-
-        session.addEventListener('end', () => {
-          hitTestSourceRequested = false;
-          hitTestSource.current = null;
-          if (currentModel) {
-            scene.remove(currentModel);
-            currentModel = null;
-          }
-        });
-
-        hitTestSourceRequested = true;
+    // Handle tap/click to place or cycle models
+    sceneEl.addEventListener("click", (event) => {
+      if (!modelPlaced) {
+        // Place the current model
+        modelContainer.setAttribute(
+          "gltf-model",
+          `#${models[currentModelIndex]}`
+        );
+        modelContainer.setAttribute("position", "0 0 -2");
+        modelContainer.setAttribute("scale", "0.5 0.5 0.5");
+        modelPlaced = true;
+      } else {
+        // Cycle to the next model
+        modelContainer.removeAttribute("gltf-model");
+        currentModelIndex = (currentModelIndex + 1) % models.length;
+        modelContainer.setAttribute(
+          "gltf-model",
+          `#${models[currentModelIndex]}`
+        );
+        modelContainer.setAttribute("position", "0 0 -2");
+        modelContainer.setAttribute("scale", "0.5 0.5 0.5");
       }
+    });
+  },
+});
 
-      if (hitTestSource.current) {
-        const hitTestResults = frame.getHitTestResults(hitTestSource.current);
-        if (hitTestResults.length) {
-          const hit = hitTestResults[0];
-          const pose = hit.getPose(referenceSpace);
-          reticle.visible = true;
-          reticle.matrix.fromArray(pose.transform.matrix);
-        } else {
-          reticle.visible = false;
-        }
-      }
-    }
+// Function to select a specific model via UI buttons
+window.selectModel = (index) => {
+  const modelContainer = document.querySelector("#model-container");
+  modelContainer.removeAttribute("gltf-model");
+  currentModelIndex = index;
+  modelContainer.setAttribute("gltf-model", `#${models[currentModelIndex]}`);
+  modelContainer.setAttribute("position", "0 0 -2");
+  modelContainer.setAttribute("scale", "0.5 0.5 0.5");
+  modelPlaced = true;
+};
 
-    renderer.render(scene, camera);
+// Preload models to improve performance
+document.addEventListener("DOMContentLoaded", () => {
+  const assets = document.querySelector("a-assets");
+  assets.addEventListener("loaded", () => {
+    console.log("All assets loaded");
   });
-}
-
-function animate() {
-  renderer.setAnimationLoop(() => {
-    renderer.render(scene, camera);
-  });
-}
+});
