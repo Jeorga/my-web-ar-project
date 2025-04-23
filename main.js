@@ -1,19 +1,21 @@
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
+import { ARButton } from 'https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js';
 
 let camera, scene, renderer;
-let controller, reticle, currentModel;
-let hitTestSource = null, localSpace = null;
+let controller;
+let reticle;
+let model = null;
 
-const modelSelector = document.getElementById('modelSelector');
-const startARButton = document.getElementById('startAR');
-
-const loader = new GLTFLoader();
+const modelSelect = document.getElementById('modelSelect');
 
 init();
+animate();
 
 function init() {
+  // Scene setup
   scene = new THREE.Scene();
+
   camera = new THREE.PerspectiveCamera();
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -21,69 +23,74 @@ function init() {
   renderer.xr.enabled = true;
   document.body.appendChild(renderer.domElement);
 
+  // AR button
+  document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+
+  // Light
   const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
   scene.add(light);
 
+  // Reticle
   reticle = new THREE.Mesh(
-    new THREE.RingGeometry(0.08, 0.12, 32).rotateX(-Math.PI / 2),
+    new THREE.RingGeometry(0.1, 0.15, 32).rotateX(-Math.PI / 2),
     new THREE.MeshBasicMaterial({ color: 0x00ff00 })
   );
   reticle.matrixAutoUpdate = false;
   reticle.visible = false;
   scene.add(reticle);
 
+  // Controller
   controller = renderer.xr.getController(0);
-  controller.addEventListener('select', () => {
-    if (reticle.visible) {
-      placeModel(reticle.matrix);
-    }
-  });
+  controller.addEventListener('select', onSelect);
   scene.add(controller);
 
-  startARButton.addEventListener('click', async () => {
-    if (navigator.xr && await navigator.xr.isSessionSupported('immersive-ar')) {
-      const session = await navigator.xr.requestSession('immersive-ar', {
-        requiredFeatures: ['hit-test']
+  // Hit test source
+  renderer.xr.addEventListener('sessionstart', () => {
+    const session = renderer.xr.getSession();
+    session.requestReferenceSpace('viewer').then(refSpace => {
+      session.requestHitTestSource({ space: refSpace }).then(source => {
+        renderer.setAnimationLoop((timestamp, frame) => {
+          if (frame) {
+            const referenceSpace = renderer.xr.getReferenceSpace();
+            const hitTestResults = frame.getHitTestResults(source);
+
+            if (hitTestResults.length > 0) {
+              const hit = hitTestResults[0];
+              const pose = hit.getPose(referenceSpace);
+              reticle.visible = true;
+              reticle.matrix.fromArray(pose.transform.matrix);
+            } else {
+              reticle.visible = false;
+            }
+
+            renderer.render(scene, camera);
+          }
+        });
       });
-      renderer.xr.setSession(session);
-      document.getElementById('ui').style.display = 'none';
-      onSessionStarted(session);
-    } else {
-      alert('AR not supported on this device/browser');
-    }
+    });
   });
 }
 
-async function onSessionStarted(session) {
-  const viewerSpace = await session.requestReferenceSpace('viewer');
-  localSpace = await session.requestReferenceSpace('local');
-  hitTestSource = await session.requestHitTestSource({ space: viewerSpace });
-
-  renderer.setAnimationLoop((timestamp, frame) => {
-    if (frame) {
-      const hitTestResults = frame.getHitTestResults(hitTestSource);
-      if (hitTestResults.length > 0) {
-        const hit = hitTestResults[0].getPose(localSpace);
-        reticle.visible = true;
-        reticle.matrix.fromArray(hit.transform.matrix);
-      } else {
-        reticle.visible = false;
-      }
+function onSelect() {
+  if (reticle.visible) {
+    if (model) {
+      scene.remove(model); // Remove previous model
+      model = null;
     }
-    renderer.render(scene, camera);
-  });
-}
 
-function placeModel(matrix) {
-  if (currentModel) {
-    scene.remove(currentModel);
+    const loader = new GLTFLoader();
+    const selectedModel = modelSelect.value;
+    loader.load(`assets/models/${selectedModel}`, gltf => {
+      model = gltf.scene;
+      model.position.setFromMatrixPosition(reticle.matrix);
+      model.quaternion.setFromRotationMatrix(reticle.matrix);
+      scene.add(model);
+    });
   }
+}
 
-  loader.load(modelSelector.value, (gltf) => {
-    currentModel = gltf.scene;
-    currentModel.scale.set(0.3, 0.3, 0.3);
-    currentModel.position.setFromMatrixPosition(matrix);
-    currentModel.quaternion.setFromRotationMatrix(matrix);
-    scene.add(currentModel);
+function animate() {
+  renderer.setAnimationLoop(() => {
+    renderer.render(scene, camera);
   });
 }

@@ -1,26 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Android AR Viewer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Load Three.js and GLTFLoader -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/examples/js/loaders/GLTFLoader.js"></script>
-
-  <!-- Load your AR logic -->
-  <script type="module" src="main.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Android WebAR - Model Selector</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="ui">
-    <select id="modelSelector">
-      <option value="assets/models/boxtest.glb">Object A</option>
-      <option value="assets/models/sAoiTest.glb">Object B</option>
-      <option value="assets/models/sAoiTestA.glb">Object C</option>
+  <div class="container">
+    <h1>Select a 3D Model</h1>
+    <select id="modelSelect">
+      <option value="boxtest.glb">Model 1</option>
+      <option value="sAoiTest.glb">Option 2</option>
     </select>
-    <button id="startAR">Enter AR</button>
+    <p class="note">Tap on screen to place model</p>
   </div>
+
+  <script type="module" src="main.js"></script>
 </body>
 </html>
