@@ -1,68 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="AR Web Experience for Android">
-    <title>AR Web Viewer for Android</title>
-    
-    <!-- Model Viewer component -->
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  <meta charset="UTF-8">
+  <title>Android WebAR Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/webxr/ARButton.js"></script>
 </head>
 <body>
-    <header>
-        <h1>AR Object Viewer</h1>
-        <p>Tap anywhere to place the 3D object in your space</p>
-    </header>
-    
-    <main>
-        <!-- Model selection buttons -->
-        <div class="model-selector">
-            <button data-model="assets/models/boxtest.glb">boxtest</button>
-            <button data-model="assets/models/sAoiTest.glb">sAoiTest</button>
-            <button data-model="assets/models/sAoiTestA.glb">sAoiTestA</button>
-        </div>
-        
-        <!-- AR View Container -->
-        <div class="ar-container">
-            <model-viewer 
-                id="ar-model"
-                ar 
-                ar-modes="webxr scene-viewer quick-look" 
-                camera-controls 
-                environment-image="neutral" 
-                shadow-intensity="1"
-                auto-rotate
-                ar-scale="fixed"
-                ar-placement="floor"
-                style="width: 100%; height: 100%;">
-                
-                <!-- Loading indicator -->
-                <div class="progress-bar hide" slot="progress-bar">
-                    <div class="update-bar"></div>
-                </div>
-                
-                <!-- AR prompt button -->
-                <button slot="ar-button" id="ar-button">
-                    View in AR
-                </button>
-                
-                <!-- Error message -->
-                <div id="error-message" class="error-message"></div>
-            </model-viewer>
-        </div>
-    </main>
-    
-    <footer>
-        <p>Move your device to view the object in your space</p>
-    </footer>
-    
-    <script src="main.js"></script>
+  <div id="menu">
+    <select id="modelSelector">
+      <option value="assets/models/boxtest.glb">Object A</option>
+      <option value="assets/sAoiTest.glb">Object B</option>
+      <option value="assets/sAoiTestA.glb">Object C</option>
+    </select>
+  </div>
+  <script type="module" src="main.js"></script>
 </body>
 </html>
