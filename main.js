@@ -14,10 +14,13 @@ if (isiOS) {
   modelSelect.addEventListener("change", updateUSDZLink);
   updateUSDZLink();
 } else {
-  if (navigator.xr && navigator.xr.isSessionSupported) {
-    navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
+  if (navigator.xr) {
+    navigator.xr.isSessionSupported('immersive-ar').then((supported) => {
       if (supported) {
         arButton.style.display = "inline-block";
+        modelSelect.addEventListener("change", () => {
+          currentModelName = modelSelect.value;
+        });
       } else {
         note.textContent = "AR is not supported on this Android device.";
       }
@@ -32,14 +35,17 @@ function updateUSDZLink() {
   arLink.href = `assets/models/${modelName}.usdz`;
 }
 
+let currentModelName = modelSelect.value;
+
 arButton.addEventListener("click", () => {
-  startWebXR(modelSelect.value);
+  startWebXR(currentModelName);
 });
+
+// ---------------- WebXR Scene Setup ---------------- //
 
 let scene, camera, renderer, reticle, controller, currentModel = null;
 
 function startWebXR(modelName) {
-  // Clear previous renderers
   if (renderer && renderer.domElement) {
     renderer.setAnimationLoop(null);
     renderer.domElement.remove();
@@ -74,7 +80,6 @@ function startWebXR(modelName) {
     }
   });
 
-  // Reticle
   const geometry = new THREE.RingGeometry(0.1, 0.11, 32).rotateX(-Math.PI / 2);
   const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
   reticle = new THREE.Mesh(geometry, material);
@@ -83,21 +88,20 @@ function startWebXR(modelName) {
   scene.add(reticle);
 
   let hitTestSource = null;
-  let localSpace = null;
 
   renderer.setAnimationLoop((timestamp, frame) => {
     if (frame) {
-      const session = renderer.xr.getSession();
       const referenceSpace = renderer.xr.getReferenceSpace();
 
       if (!hitTestSource) {
+        const session = renderer.xr.getSession();
         session.requestReferenceSpace("viewer").then((space) => {
           session.requestHitTestSource({ space }).then((source) => {
             hitTestSource = source;
           });
         });
 
-        session.addEventListener("end", () => {
+        renderer.xr.getSession().addEventListener("end", () => {
           hitTestSource = null;
         });
       }
