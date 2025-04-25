@@ -1,16 +1,15 @@
+// main.js (Rewritten with: stable preview, tap-to-confirm, anchoring)
+
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
 let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
-let modelAnchor = null;
 let previewModel = null;
-let hasPlacedModel = false;
-
+let modelAnchor = null;
+let modelPlaced = false;
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
-let lastPlacementTime = 0;
-const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
   initScene();
@@ -23,10 +22,7 @@ function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
 
-  if (renderer) {
-    document.body.removeChild(renderer.domElement);
-  }
-
+  if (renderer) document.body.removeChild(renderer.domElement);
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -56,7 +52,6 @@ function setupLighting() {
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
-
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
@@ -69,74 +64,76 @@ async function startAR() {
 
   if (!navigator.xr) {
     alert("WebXR not supported");
-    resetUI();
+    button.disabled = false;
+    button.innerText = "Start AR";
     return;
   }
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
   if (!supported) {
     alert("immersive-ar not supported");
-    resetUI();
+    button.disabled = false;
+    button.innerText = "Start AR";
     return;
   }
 
   try {
     initScene();
-
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['hit-test', 'anchors', 'dom-overlay'],
       domOverlay: { root: document.body }
     });
 
-    xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
-    const viewerSpace = await xrSession.requestReferenceSpace('viewer');
-    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewerSpace });
-
     xrSession.addEventListener('end', onSessionEnd);
     xrSession.addEventListener('visibilitychange', onVisibilityChange);
 
+    xrReferenceSpace = await xrSession.requestReferenceSpace('local-floor');
+    const viewSpace = await xrSession.requestReferenceSpace('viewer');
+    xrHitTestSource = await xrSession.requestHitTestSource({ space: viewSpace });
+
     renderer.xr.setSession(xrSession);
-    hasPlacedModel = false;
-    await loadPreviewModel();
-
     animate();
-
     document.getElementById('modelSelector').style.display = 'none';
     exitButton.style.display = 'block';
-    resetUI();
+    button.disabled = false;
+    button.innerText = "Start AR";
+
+    loadPreviewModel();
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
-    resetUI();
+    button.disabled = false;
+    button.innerText = "Start AR";
   }
-}
-
-function resetUI() {
-  const button = document.getElementById('arButton');
-  button.disabled = false;
-  button.innerText = "Start AR";
 }
 
 function exitAR() {
-  if (xrSession) {
-    xrSession.end().catch(console.error);
-  } else {
-    onSessionEnd();
-  }
+  if (xrSession) xrSession.end().catch(e => console.error("Error ending session:", e));
+  else onSessionEnd();
 }
 
 function onSessionEnd() {
   renderer.setAnimationLoop(null);
-  xrSession?.removeEventListener('end', onSessionEnd);
-  xrSession?.removeEventListener('visibilitychange', onVisibilityChange);
-  xrSession = null;
+  if (xrSession) {
+    xrSession.removeEventListener('end', onSessionEnd);
+    xrSession.removeEventListener('visibilitychange', onVisibilityChange);
+    xrSession = null;
+  }
+
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
-  [currentModel, previewModel].forEach(m => m && scene.remove(m));
-  currentModel = previewModel = modelAnchor = null;
+  if (currentModel) scene.remove(currentModel);
+  if (previewModel) scene.remove(previewModel);
 
+  currentModel = null;
+  previewModel = null;
+  modelAnchor = null;
+  modelPlaced = false;
+
+  document.getElementById('arButton').innerText = "Start AR";
+  document.getElementById('arButton').disabled = false;
   document.getElementById('modelSelector').style.display = 'block';
   exitButton.style.display = 'none';
   warningDiv.style.display = 'none';
@@ -147,93 +144,84 @@ function onVisibilityChange() {
 }
 
 function onTap() {
-  if (!previewModel || !xrSession || hasPlacedModel) return;
-  const now = Date.now();
-  if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
-  lastPlacementTime = now;
-  placeModelAtPreview();
+  if (!previewModel || modelPlaced || !xrHitTestSource) return;
+  placeModel();
 }
 
-async function loadPreviewModel() {
+function loadPreviewModel() {
   const modelPath = `./assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
-
-  return new Promise((resolve, reject) => {
-    loader.load(modelPath, (gltf) => {
-      previewModel = gltf.scene;
-      previewModel.scale.set(0.1, 0.1, 0.1);
-      previewModel.visible = false;
-      scene.add(previewModel);
-      loadingDiv.style.display = 'none';
-      resolve();
-    }, undefined, err => {
-      loadingDiv.style.display = 'none';
-      console.error("Preview load error:", err);
-      alert("Model failed to load");
-      reject();
+  loader.load(modelPath, gltf => {
+    previewModel = gltf.scene;
+    previewModel.scale.set(0.1, 0.1, 0.1);
+    previewModel.visible = false;
+    previewModel.traverse(child => {
+      if (child.isMesh) child.material.transparent = true, child.material.opacity = 0.5;
     });
+    scene.add(previewModel);
+    loadingDiv.style.display = 'none';
+  }, undefined, err => {
+    console.error("Preview load failed:", err);
+    alert("Failed to load preview model");
+    loadingDiv.style.display = 'none';
   });
 }
 
-async function placeModelAtPreview() {
-  if (!previewModel || !xrSession || !xrReferenceSpace) return;
+async function placeModel() {
+  if (!previewModel || !xrReferenceSpace || !xrHitTestSource) return;
+  const frame = renderer.xr.getFrame();
+  const hits = frame.getHitTestResults(xrHitTestSource);
+  if (hits.length === 0) return;
 
-  const matrix = previewModel.matrixWorld.clone();
+  const pose = hits[0].getPose(xrReferenceSpace);
+  if (!pose) return;
 
-  loader.load(`./assets/models/${modelDropdown.value}`, async (gltf) => {
-    currentModel = gltf.scene;
-    currentModel.scale.set(0.1, 0.1, 0.1);
-    currentModel.applyMatrix4(matrix);
-    scene.add(currentModel);
+  try {
+    modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
+  } catch (e) {
+    console.warn("Anchor creation failed:", e);
+  }
 
-    try {
-      modelAnchor = await xrSession.createAnchor(new XRRigidTransform().fromMatrix(matrix), xrReferenceSpace);
-    } catch (e) {
-      console.warn("Anchor failed, using static placement:", e);
-    }
-
-    previewModel.visible = false;
-    hasPlacedModel = true;
+  previewModel.traverse(child => {
+    if (child.isMesh) child.material.opacity = 1, child.material.transparent = false;
   });
+  currentModel = previewModel;
+  previewModel = null;
+  modelPlaced = true;
 }
 
 function animate() {
   renderer.setAnimationLoop((timestamp, frame) => {
-    if (!frame || !xrSession) return;
+    if (!frame || !xrSession || !xrReferenceSpace) return;
+    render(frame);
 
     const pose = frame.getViewerPose(xrReferenceSpace);
     warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
 
-    if (!hasPlacedModel && previewModel && xrHitTestSource) {
+    if (previewModel && xrHitTestSource) {
       const hits = frame.getHitTestResults(xrHitTestSource);
       if (hits.length > 0) {
-        const pose = hits[0].getPose(xrReferenceSpace);
-        if (pose) {
+        const hitPose = hits[0].getPose(xrReferenceSpace);
+        if (hitPose) {
           previewModel.visible = true;
-          const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
-          previewModel.matrixAutoUpdate = false;
-          previewModel.matrix.copy(matrix);
+          const mat = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
+          previewModel.matrix.fromArray(hitPose.transform.matrix);
+          previewModel.matrix.decompose(previewModel.position, previewModel.quaternion, previewModel.scale);
         }
       } else {
         previewModel.visible = false;
       }
     }
-
-    render(frame);
   });
 }
 
 function render(frame) {
-  if (renderer.xr.isPresenting) {
-    const xrCam = renderer.xr.getCamera(camera);
-    const pos = xrCam.position;
-    const now = performance.now();
-
-    if (now - lastUpdate > 100) {
-      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
-      lastUpdate = now;
-    }
+  const xrCam = renderer.xr.getCamera(camera);
+  const pos = xrCam.position;
+  const now = performance.now();
+  if (now - lastUpdate > 100) {
+    infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
+    lastUpdate = now;
   }
-
   renderer.render(scene, camera);
 }
