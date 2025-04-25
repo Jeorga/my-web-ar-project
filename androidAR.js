@@ -1,15 +1,13 @@
-// main.js (Rewritten with: stable preview, tap-to-confirm, anchoring)
-
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
 let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
-let previewModel = null;
 let modelAnchor = null;
-let modelPlaced = false;
 const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
+let lastPlacementTime = 0;
+const PLACEMENT_COOLDOWN = 200;
 
 window.onload = () => {
   initScene();
@@ -21,8 +19,11 @@ window.onload = () => {
 function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-
-  if (renderer) document.body.removeChild(renderer.domElement);
+  
+  if (renderer) {
+    document.body.removeChild(renderer.domElement);
+  }
+  
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -79,9 +80,10 @@ async function startAR() {
 
   try {
     initScene();
+    
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
-      optionalFeatures: ['hit-test', 'anchors', 'dom-overlay'],
+      optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
       domOverlay: { root: document.body }
     });
 
@@ -98,8 +100,6 @@ async function startAR() {
     exitButton.style.display = 'block';
     button.disabled = false;
     button.innerText = "Start AR";
-
-    loadPreviewModel();
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
@@ -109,28 +109,32 @@ async function startAR() {
 }
 
 function exitAR() {
-  if (xrSession) xrSession.end().catch(e => console.error("Error ending session:", e));
-  else onSessionEnd();
+  if (xrSession) {
+    xrSession.end().catch(e => console.error("Error ending session:", e));
+  } else {
+    onSessionEnd();
+  }
 }
 
 function onSessionEnd() {
+  if (renderer.xr.isPresenting) {
+    renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
+  }
+  
   renderer.setAnimationLoop(null);
+  
   if (xrSession) {
     xrSession.removeEventListener('end', onSessionEnd);
     xrSession.removeEventListener('visibilitychange', onVisibilityChange);
     xrSession = null;
   }
-
+  
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
   if (currentModel) scene.remove(currentModel);
-  if (previewModel) scene.remove(previewModel);
-
   currentModel = null;
-  previewModel = null;
   modelAnchor = null;
-  modelPlaced = false;
 
   document.getElementById('arButton').innerText = "Start AR";
   document.getElementById('arButton').disabled = false;
@@ -144,84 +148,99 @@ function onVisibilityChange() {
 }
 
 function onTap() {
-  if (!previewModel || modelPlaced || !xrHitTestSource) return;
+  if (!renderer.xr.isPresenting || !xrSession) return;
+  const now = Date.now();
+  if (now - lastPlacementTime < PLACEMENT_COOLDOWN) return;
+  lastPlacementTime = now;
   placeModel();
 }
 
-function loadPreviewModel() {
-  const modelPath = `./assets/models/${modelDropdown.value}`;
-  loadingDiv.style.display = 'block';
-  loader.load(modelPath, gltf => {
-    previewModel = gltf.scene;
-    previewModel.scale.set(0.1, 0.1, 0.1);
-    previewModel.visible = false;
-    previewModel.traverse(child => {
-      if (child.isMesh) child.material.transparent = true, child.material.opacity = 0.5;
-    });
-    scene.add(previewModel);
-    loadingDiv.style.display = 'none';
-  }, undefined, err => {
-    console.error("Preview load failed:", err);
-    alert("Failed to load preview model");
-    loadingDiv.style.display = 'none';
-  });
-}
-
 async function placeModel() {
-  if (!previewModel || !xrReferenceSpace || !xrHitTestSource) return;
-  const frame = renderer.xr.getFrame();
-  const hits = frame.getHitTestResults(xrHitTestSource);
-  if (hits.length === 0) return;
-
-  const pose = hits[0].getPose(xrReferenceSpace);
-  if (!pose) return;
-
-  try {
-    modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
-  } catch (e) {
-    console.warn("Anchor creation failed:", e);
+  if (currentModel && modelAnchor) {
+    try {
+      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
+      if (anchor) {
+        modelAnchor.cancel?.();
+        modelAnchor = anchor;
+      }
+    } catch (e) {
+      console.warn("Anchor update failed:", e);
+    }
+    return;
   }
 
-  previewModel.traverse(child => {
-    if (child.isMesh) child.material.opacity = 1, child.material.transparent = false;
+  if (currentModel) {
+    scene.remove(currentModel);
+    currentModel = null;
+  }
+
+  const modelPath = `assets/models/${modelDropdown.value}`;
+  loadingDiv.style.display = 'block';
+  loader.load(modelPath, async (gltf) => {
+    currentModel = gltf.scene;
+    currentModel.scale.set(0.1, 0.1, 0.1);
+
+    const frame = renderer.xr.getFrame();
+    if (frame && xrHitTestSource && xrReferenceSpace) {
+      const hits = frame.getHitTestResults(xrHitTestSource);
+      if (hits.length > 0) {
+        const pose = hits[0].getPose(xrReferenceSpace);
+        if (pose) {
+          const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
+          currentModel.applyMatrix4(matrix);
+
+          try {
+            modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
+          } catch (e) {
+            console.warn("Anchor creation failed:", e);
+          }
+        }
+      }
+    }
+
+    if (!currentModel.parent) {
+      const xrCam = renderer.xr.getCamera(camera);
+      forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
+      currentModel.position.copy(xrCam.position).add(forward.multiplyScalar(1.5));
+      currentModel.quaternion.copy(xrCam.quaternion);
+    }
+
+    scene.add(currentModel);
+    loadingDiv.style.display = 'none';
+  }, undefined, err => {
+    loadingDiv.style.display = 'none';
+    console.error("Model load error:", err);
+    alert("Model failed to load");
   });
-  currentModel = previewModel;
-  previewModel = null;
-  modelPlaced = true;
 }
 
 function animate() {
   renderer.setAnimationLoop((timestamp, frame) => {
-    if (!frame || !xrSession || !xrReferenceSpace) return;
+    if (!frame || !xrSession) return;
     render(frame);
 
     const pose = frame.getViewerPose(xrReferenceSpace);
     warningDiv.style.display = !pose || pose.emulatedPosition ? 'block' : 'none';
-
-    if (previewModel && xrHitTestSource) {
-      const hits = frame.getHitTestResults(xrHitTestSource);
-      if (hits.length > 0) {
-        const hitPose = hits[0].getPose(xrReferenceSpace);
-        if (hitPose) {
-          previewModel.visible = true;
-          const mat = new THREE.Matrix4().fromArray(hitPose.transform.matrix);
-          previewModel.matrix.fromArray(hitPose.transform.matrix);
-          previewModel.matrix.decompose(previewModel.position, previewModel.quaternion, previewModel.scale);
-        }
-      } else {
-        previewModel.visible = false;
-      }
-    }
   });
 }
 
 function render(frame) {
-  const xrCam = renderer.xr.getCamera(camera);
-  const pos = xrCam.position;
-  const now = performance.now();
-  if (now - lastUpdate > 100) {
-    infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
-    lastUpdate = now;
+  if (renderer.xr.isPresenting) {
+    const xrCam = renderer.xr.getCamera(camera);
+    const pos = xrCam.position;
+    const now = performance.now();
+
+    if (now - lastUpdate > 100) {
+      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
+      lastUpdate = now;
+    }
+
+    if (currentModel && !modelAnchor) {
+      forward.set(0, 0, -1).applyQuaternion(xrCam.quaternion);
+      targetPos.copy(xrCam.position).add(forward.multiplyScalar(1.5));
+      currentModel.position.copy(targetPos);
+    }
   }
+
   renderer.render(scene, camera);
 }

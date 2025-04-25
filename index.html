@@ -3,16 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to AR Experience</title>
+  <title>AR Model Viewer - Cross Platform</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Import model-viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Welcome to Our AR Experience</h1>
-    <p>Explore 3D models in augmented reality on your smartphone or tablet.</p>
-    <button id="enterButton" class="ar-button">Enter AR</button>
-    <p class="note">Works on iOS (Safari) and Android (Chrome) devices.</p>
+    <h1>Select a Model to View in AR</h1>
+
+    <!-- Dropdown for model selection -->
+    <select id="modelSelect">
+      <option value='{"gltf": "aoiBaSmoll.gltf", "usdz": "aoiBaSmoll.usdz"}'>Model 1</option>
+      <option value='{"gltf": "aoiBtestUsdz.gltf", "usdz": "aoiBtestUsdz.usdz"}'>Model 2</option>
+    </select>
+
+    <!-- Model Viewer for AR -->
+    <model-viewer
+      id="modelViewer"
+      ar
+      ar-modes="scene-viewer webxr quick-look"
+      src="assets/models/aoiBaSmoll.gltf"
+      ios-src="assets/models/aoiBaSmoll.usdz"
+      alt="3D model"
+      auto-rotate
+      camera-controls
+      style="width: 100%; height: 400px;">
+      <button slot="ar-button" class="ar-button">Tap to View in AR</button>
+    </model-viewer>
+
+    <p class="note">Works on iOS Safari and ARCore-supported Android devices</p>
   </div>
+
   <script src="main.js"></script>
 </body>
 </html>
