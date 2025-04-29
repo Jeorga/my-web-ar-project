@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const note = document.querySelector('.note');
 
   function updateLink(model) {
-    const modelUrl = encodeURIComponent(`https://yourdomain.com/assets/models/${model}`);
+    const modelUrl = encodeURIComponent(`https://jeorga.github.io/my-web-ar-project/assets/models/${model}`);
     const fallbackUrl = encodeURIComponent(`https://yourdomain.com/fallback.html`);
 
     arLink.href = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`;
