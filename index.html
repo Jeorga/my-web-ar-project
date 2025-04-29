@@ -5,33 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AR Page - Choose 3D Model</title>
   <link rel="stylesheet" href="style.css" />
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ar.js@2.2.2/aframe-ar.min.js"></script>
 </head>
 <body>
   <div id="info">Tap to place model</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
+  <div id="warning">Move device to detect surface</div>
   <div id="loading">Loading model...</div>
 
   <div id="modelSelector">
     <label for="modelDropdown">Choose a model:</label>
     <select id="modelDropdown">
-      <option value="boxtest.glb">Model A</option>
-      <option value="sAoiTestA.glb">Model B</option>
+      <option value="model1.glb">Model 1</option>
+      <option value="model2.glb">Model 2</option>
     </select>
     <button id="arButton">Start AR</button>
   </div>
 
   <button id="exitButton">Exit AR</button>
 
-  <model-viewer
-    id="modelViewer"
-    style="display: none; width: 100%; height: 100%; position: fixed; top: 0; left: 0;"
-    ar
-    ar-modes="webxr"
-    camera-controls
-    auto-rotate
-    shadow-intensity="1">
-  </model-viewer>
+  <a-scene
+    id="arScene"
+    embedded
+    arjs="sourceType: webcam; detectionMode: mono; trackingMethod: best;"
+    renderer="antialias: true;">
+    <a-assets>
+      <a-asset-item id="model1" src="assets/models/model1.glb"></a-asset-item>
+      <a-asset-item id="model2" src="assets/models/model2.glb"></a-asset-item>
+    </a-assets>
+    <a-entity
+      id="modelEntity"
+      gltf-model="#model1"
+      scale="0.5 0.5 0.5"
+      position="0 0 -2"
+      visible="false"
+      arjs-anchor="type: plane;">
+    </a-entity>
+    <a-camera position="0 1.6 0"></a-camera>
+  </a-scene>
 
   <script src="main.js"></script>
 </body>
