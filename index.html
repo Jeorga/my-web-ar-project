@@ -3,36 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android AR Model Viewer</title>
+  <title>Android 3D Model Viewer</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Import model-viewer script -->
+  <!-- Import model-viewer script via CDN -->
   <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Select a Model to View in AR</h1>
+    <h1>Select a Model to View in 3D</h1>
 
     <!-- Dropdown for model selection -->
     <select id="modelSelect">
-      <option value="boxtest.glb">Astronaut</option>
-      <option value="sAoiTest.glb">Avocado</option>
+      <option value="boxtest.glb">Model A</option>
+      <option value="sAoiTestA.glb">Model B</option>
     </select>
 
-    <!-- model-viewer for AR display -->
+    <!-- model-viewer for AR-like 3D display -->
     <model-viewer
       id="modelViewer"
-      ar
-      ar-modes="scene-viewer"
       src="assets/models/Astronaut.glb"
       alt="3D model"
       camera-controls
       auto-rotate
+      environment-image="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NeutralEnvironment/NeutralEnvironment.hdr"
+      shadow-intensity="1"
+      exposure="1"
       style="width: 100%; height: 300px; display: none;"
     >
-      <button slot="ar-button" class="ar-button">Tap to View in AR</button>
+      <button slot="interaction-prompt" class="ar-button">Tap to Interact with 3D Model</button>
     </model-viewer>
 
-    <p class="note">Works on Android with ARCore-compatible devices only</p>
+    <p class="note">Works on Android browsers only</p>
   </div>
 
   <script src="main.js"></script>

@@ -15,23 +15,15 @@ window.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // Check for ARCore support (basic heuristic; not foolproof)
-  if (!('ar' in navigator)) {
-    note.textContent = 'AR not supported on this device. Requires ARCore.';
-    modelSelect.disabled = true;
-    modelViewer.style.display = 'none';
-    return;
-  }
-
   // Set default model
   modelViewer.src = `assets/models/${modelSelect.value}`;
 
   // Update model when dropdown changes
   modelSelect.addEventListener('change', () => {
-    const selectedModel = modelSelect.value;
-    modelViewer.src = `assets/models/${selectedModel}`;
+    modelViewer.src = `assets/models/${modelSelect.value}`;
   });
 
-  // Show model-viewer for Android users
+  // Show model-viewer and update note
   modelViewer.style.display = 'block';
+  note.textContent = 'Use your Android browser to view and interact with 3D models.';
 });
