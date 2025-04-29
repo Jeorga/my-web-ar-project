@@ -72,7 +72,7 @@
       controller.addEventListener('select', () => {
         if (reticle.visible) {
           const loader = new THREE.GLTFLoader();
-          loader.load('assets/models/aoiBaSmoll.glb', (gltf) => {
+          loader.load('assets/models/boxtest.glb', (gltf) => {
             const model = gltf.scene;
             model.position.setFromMatrixPosition(reticle.matrix);
             model.scale.set(0.2, 0.2, 0.2);
