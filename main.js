@@ -1,52 +1,43 @@
-let camera, scene, renderer;
-let controller;
-let reticle;
+let scene, camera, renderer, controller, reticle, hitTestSource = null, hitTestSourceRequested = false;
 let model = null;
 let modelUrl = '';
 
-function init() {
-  // Setup scene
+const loader = new THREE.GLTFLoader();
+
+function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera();
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  document.body.appendChild(renderer.domElement);
-
-  // Add light
   const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
   scene.add(light);
 
-  // Load reticle for placement
-  const loader = new THREE.GLTFLoader();
-  loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r158/examples/models/gltf/reticle/reticle.gltf', (gltf) => {
-    reticle = gltf.scene;
-    reticle.scale.set(0.5, 0.5, 0.5);
-    reticle.visible = false;
-    scene.add(reticle);
-  });
+  renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true;
 
-  // Setup controller
+  document.body.appendChild(renderer.domElement);
+
   controller = renderer.xr.getController(0);
   controller.addEventListener('select', onSelect);
   scene.add(controller);
 
-  document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
-
-  renderer.setAnimationLoop(render);
+  // Reticle
+  const ringGeo = new THREE.RingGeometry(0.08, 0.1, 32).rotateX(-Math.PI / 2);
+  const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+  reticle = new THREE.Mesh(ringGeo, ringMat);
+  reticle.matrixAutoUpdate = false;
+  reticle.visible = false;
+  scene.add(reticle);
 }
 
 function onSelect() {
   if (reticle.visible && modelUrl) {
-    const loader = new THREE.GLTFLoader();
     loader.load(`assets/models/${modelUrl}`, (gltf) => {
-      if (model) {
-        scene.remove(model);
-      }
+      if (model) scene.remove(model);
       model = gltf.scene;
       model.position.setFromMatrixPosition(reticle.matrix);
-      model.scale.set(0.2, 0.2, 0.2); // Adjust model size if needed
+      model.scale.set(0.2, 0.2, 0.2);
       scene.add(model);
     });
   }
@@ -54,19 +45,29 @@ function onSelect() {
 
 function render(timestamp, frame) {
   if (frame) {
-    const referenceSpace = renderer.xr.getReferenceSpace();
+    const refSpace = renderer.xr.getReferenceSpace();
     const session = renderer.xr.getSession();
 
-    const viewerPose = frame.getViewerPose(referenceSpace);
-    if (viewerPose) {
-      const hitTestResults = frame.getHitTestResultsForTransientInput
-        ? []
-        : frame.getHitTestResults(renderer.xr.getHitTestSource());
+    if (!hitTestSourceRequested) {
+      session.requestReferenceSpace('viewer').then((viewerSpace) => {
+        session.requestHitTestSource({ space: viewerSpace }).then((source) => {
+          hitTestSource = source;
+        });
+      });
 
-      if (hitTestResults.length > 0 && reticle) {
+      session.addEventListener('end', () => {
+        hitTestSourceRequested = false;
+        hitTestSource = null;
+      });
+
+      hitTestSourceRequested = true;
+    }
+
+    if (hitTestSource) {
+      const hitTestResults = frame.getHitTestResults(hitTestSource);
+      if (hitTestResults.length > 0) {
         const hit = hitTestResults[0];
-        const pose = hit.getPose(referenceSpace);
-
+        const pose = hit.getPose(refSpace);
         reticle.visible = true;
         reticle.matrix.fromArray(pose.transform.matrix);
       } else {
@@ -78,11 +79,23 @@ function render(timestamp, frame) {
   renderer.render(scene, camera);
 }
 
-function startAR() {
-  const select = document.getElementById('modelSelect');
-  modelUrl = select.value;
+document.getElementById('startAR').addEventListener('click', async () => {
+  modelUrl = document.getElementById('modelSelect').value;
 
-  init();
-}
-
-document.getElementById('startAR').addEventListener('click', startAR);
+  if (navigator.xr) {
+    const supported = await navigator.xr.isSessionSupported('immersive-ar');
+    if (supported) {
+      initScene();
+      const session = await navigator.xr.requestSession('immersive-ar', {
+        requiredFeatures: ['hit-test']
+      });
+      renderer.xr.setReferenceSpaceType('local');
+      renderer.xr.setSession(session);
+      renderer.setAnimationLoop(render);
+    } else {
+      alert('WebXR not supported on this device.');
+    }
+  } else {
+    alert('WebXR not available.');
+  }
+});

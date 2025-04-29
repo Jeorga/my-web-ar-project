@@ -10,24 +10,20 @@
   <div class="container">
     <h1>Select a Model to View in AR</h1>
 
-    <!-- Dropdown for model selection -->
     <select id="modelSelect">
       <option value="boxtest.glb">Model A</option>
       <option value="sAoiTestA.glb">Model B</option>
     </select>
 
-    <!-- AR button -->
     <button id="startAR" class="ar-button">Tap to Start AR</button>
-
     <p class="note">Works on Android Chrome only</p>
   </div>
 
-  <!-- Three.js and loaders -->
+  <!-- Three.js and GLTF loader -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"></script>
 
-  <!-- Your custom JS -->
+  <!-- Your script -->
   <script src="main.js"></script>
 </body>
 </html>
