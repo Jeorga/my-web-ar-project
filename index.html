@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android AR Scene Viewer - Multiple Models</title>
+  <title>Android WebXR AR - Multiple Models</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,14 +16,18 @@
       <option value="sAoiTestA.glb">Model B</option>
     </select>
 
-    <!-- AR Scene Viewer link -->
-    <a id="arLink" class="ar-button" target="_blank">
-      Tap to View in AR
-    </a>
+    <!-- AR button -->
+    <button id="startAR" class="ar-button">Tap to Start AR</button>
 
     <p class="note">Works on Android Chrome only</p>
   </div>
 
+  <!-- Three.js and loaders -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/webxr/ARButton.js"></script>
+
+  <!-- Your custom JS -->
   <script src="main.js"></script>
 </body>
 </html>

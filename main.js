@@ -1,29 +1,88 @@
-function isAndroid() {
-  return /Android/i.test(navigator.userAgent);
+let camera, scene, renderer;
+let controller;
+let reticle;
+let model = null;
+let modelUrl = '';
+
+function init() {
+  // Setup scene
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera();
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.xr.enabled = true;
+  document.body.appendChild(renderer.domElement);
+
+  // Add light
+  const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
+  scene.add(light);
+
+  // Load reticle for placement
+  const loader = new THREE.GLTFLoader();
+  loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r158/examples/models/gltf/reticle/reticle.gltf', (gltf) => {
+    reticle = gltf.scene;
+    reticle.scale.set(0.5, 0.5, 0.5);
+    reticle.visible = false;
+    scene.add(reticle);
+  });
+
+  // Setup controller
+  controller = renderer.xr.getController(0);
+  controller.addEventListener('select', onSelect);
+  scene.add(controller);
+
+  document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+
+  renderer.setAnimationLoop(render);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  const modelSelect = document.getElementById('modelSelect');
-  const arLink = document.getElementById('arLink');
-  const note = document.querySelector('.note');
+function onSelect() {
+  if (reticle.visible && modelUrl) {
+    const loader = new THREE.GLTFLoader();
+    loader.load(`assets/models/${modelUrl}`, (gltf) => {
+      if (model) {
+        scene.remove(model);
+      }
+      model = gltf.scene;
+      model.position.setFromMatrixPosition(reticle.matrix);
+      model.scale.set(0.2, 0.2, 0.2); // Adjust model size if needed
+      scene.add(model);
+    });
+  }
+}
 
-  function updateLink(model) {
-    const modelUrl = encodeURIComponent(`https://jeorga.github.io/my-web-ar-project/assets/models/${model}`);
-    const fallbackUrl = encodeURIComponent(`https://yourdomain.com/fallback.html`);
+function render(timestamp, frame) {
+  if (frame) {
+    const referenceSpace = renderer.xr.getReferenceSpace();
+    const session = renderer.xr.getSession();
 
-    arLink.href = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`;
+    const viewerPose = frame.getViewerPose(referenceSpace);
+    if (viewerPose) {
+      const hitTestResults = frame.getHitTestResultsForTransientInput
+        ? []
+        : frame.getHitTestResults(renderer.xr.getHitTestSource());
+
+      if (hitTestResults.length > 0 && reticle) {
+        const hit = hitTestResults[0];
+        const pose = hit.getPose(referenceSpace);
+
+        reticle.visible = true;
+        reticle.matrix.fromArray(pose.transform.matrix);
+      } else {
+        reticle.visible = false;
+      }
+    }
   }
 
-  if (!isAndroid()) {
-    arLink.style.display = 'none';
-    modelSelect.style.display = 'none';
-    note.textContent = "This AR experience is only available on Android Chrome.";
-    return;
-  }
+  renderer.render(scene, camera);
+}
 
-  updateLink(modelSelect.value);
+function startAR() {
+  const select = document.getElementById('modelSelect');
+  modelUrl = select.value;
 
-  modelSelect.addEventListener('change', () => {
-    updateLink(modelSelect.value);
-  });
-});
+  init();
+}
+
+document.getElementById('startAR').addEventListener('click', startAR);
