@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AR Page - Choose 3D Model</title>
   <link rel="stylesheet" href="style.css" />
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
+  <div id="info">Tap to place model</div>
   <div id="warning">Tracking lost - move device slowly to recover</div>
   <div id="loading">Loading model...</div>
 
@@ -22,8 +23,16 @@
 
   <button id="exitButton">Exit AR</button>
 
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <model-viewer
+    id="modelViewer"
+    style="display: none; width: 100%; height: 100%; position: fixed; top: 0; left: 0;"
+    ar
+    ar-modes="webxr"
+    camera-controls
+    auto-rotate
+    shadow-intensity="1">
+  </model-viewer>
+
   <script src="main.js"></script>
 </body>
 </html>
