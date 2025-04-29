@@ -3,47 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android AR.js - Multiple Models</title>
+  <title>Welcome to AR Experience</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ar.js@2.2.2/aframe-ar.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Select a Model to View in AR</h1>
-
-    <!-- Dropdown for model selection -->
-    <select id="modelSelect">
-      <option value="model1.glb">Model 1</option>
-      <option value="model2.glb">Model 2</option>
-    </select>
-
-    <!-- AR button -->
-    <button id="arButton" class="ar-button">Tap to View in AR</button>
-
-    <p id="note" class="note">Works on Android browsers with WebGL and WebRTC</p>
+    <h1>Welcome to Our AR Experience</h1>
+    <p>Explore 3D models in augmented reality on your smartphone or tablet.</p>
+    <button id="enterButton" class="ar-button">Enter AR</button>
+    <p class="note">Works on iOS (Safari) and Android (Chrome) devices.</p>
   </div>
-
-  <!-- A-Frame scene -->
-  <a-scene
-    id="arScene"
-    embedded
-    arjs="sourceType: webcam; detectionMode: mono; maxDetectionRate: 60; trackingMethod: best;"
-    renderer="antialias: true;">
-    <a-assets>
-      <a-asset-item id="model1" src="assets/models/boxtest.glb"></a-asset-item>
-      <a-asset-item id="model2" src="assets/models/sAoiTestA.glb"></a-asset-item>
-    </a-assets>
-    <a-entity
-      id="modelEntity"
-      gltf-model="#model1"
-      scale="0.5 0.5 0.5"
-      position="0 0 -2"
-      arjs-anchor="type: plane;">
-    </a-entity>
-    <a-camera position="0 1.6 0"></a-camera>
-  </a-scene>
-
   <script src="main.js"></script>
 </body>
 </html>
