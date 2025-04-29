@@ -3,27 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cross-Platform WebAR Viewer</title>
+  <title>Android AR Model Viewer</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Import model-viewer script -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Choose a 3D Model</h1>
+    <h1>Select a Model to View in AR</h1>
+
+    <!-- Dropdown for model selection -->
     <select id="modelSelect">
-      <option value="boxtest">Aoi Ba Smoll</option>
-      <option value="sAoiTest">Aoi B Test</option>
+      <option value="Astronaut.glb">Astronaut</option>
+      <option value="Avocado.glb">Avocado</option>
     </select>
 
-    <!-- AR Trigger Buttons -->
-    <a id="arLink" rel="ar" style="display: none;">
-      <button class="ar-button">View in AR (iOS)</button>
-    </a>
+    <!-- model-viewer for AR display -->
+    <model-viewer
+      id="modelViewer"
+      ar
+      ar-modes="scene-viewer"
+      src="assets/models/Astronaut.glb"
+      alt="3D model"
+      camera-controls
+      auto-rotate
+      style="width: 100%; height: 300px; display: none;"
+    >
+      <button slot="ar-button" class="ar-button">Tap to View in AR</button>
+    </model-viewer>
 
-    <button id="arButton" class="ar-button" style="display: none;">View in AR (Android)</button>
-
-    <p class="note" id="note"></p>
+    <p class="note">Works on Android with ARCore-compatible devices only</p>
   </div>
 
-  <script type="module" src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
