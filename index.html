@@ -3,10 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android AR.js - Multiple Models</title>
+  <title>Android WebXR AR - Multiple Models</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/ar.js@2.2.2/aframe-ar.min.js"></script>
 </head>
 <body>
   <div class="container">
@@ -14,28 +12,18 @@
 
     <!-- Dropdown for model selection -->
     <select id="modelSelect">
-      <option value="model1.glb">Model 1</option>
-      <option value="model2.glb">Model 2</option>
+      <option value="boxtest.glb">Model A</option>
+      <option value="sAoiTestA.glb">Model B</option>
     </select>
 
     <!-- AR button -->
     <button id="arButton" class="ar-button">Tap to View in AR</button>
 
-    <p id="note" class="note">Works on Android browsers with WebGL and WebRTC</p>
+    <p id="note" class="note">Requires Chrome on Android with ARCore support</p>
   </div>
 
-  <!-- A-Frame scene -->
-  <a-scene id="arScene" embedded arjs="sourceType: webcam; detectionMode: mono_and_matrix; matrixCodeType: 3x3;">
-    <a-assets>
-      <a-asset-item id="model1" src="assets/models/boxtest.glb"></a-asset-item>
-      <a-asset-item id="model2" src="assets/models/sAoiTestA.glb"></a-asset-item>
-    </a-assets>
-    <a-marker preset="hiro">
-      <a-entity id="modelEntity" gltf-model="#model1" scale="0.5 0.5 0.5" position="0 0 0"></a-entity>
-    </a-marker>
-    <a-entity camera></a-entity>
-  </a-scene>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="main.js"></script>
 </body>
 </html>
