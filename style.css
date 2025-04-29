@@ -29,10 +29,8 @@ select {
   font-size: 16px;
   border-radius: 12px;
   cursor: pointer;
-  position: relative;
-  bottom: 0;
-  width: 100%;
-  box-sizing: border-box;
+  text-decoration: none;
+  display: inline-block;
 }
 
 .ar-button:hover {
@@ -43,10 +41,4 @@ select {
   margin-top: 12px;
   color: #777;
   font-size: 14px;
-}
-
-model-viewer {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }

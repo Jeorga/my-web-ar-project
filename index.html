@@ -3,14 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android 3D Model Viewer</title>
+  <title>Android AR Scene Viewer - Multiple Models</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- Import model-viewer script via CDN -->
-  <script type="module" src="https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Select a Model to View in 3D</h1>
+    <h1>Select a Model to View in AR</h1>
 
     <!-- Dropdown for model selection -->
     <select id="modelSelect">
@@ -18,22 +16,12 @@
       <option value="sAoiTestA.glb">Model B</option>
     </select>
 
-    <!-- model-viewer for AR-like 3D display -->
-    <model-viewer
-      id="modelViewer"
-      src="assets/models/Astronaut.glb"
-      alt="3D model"
-      camera-controls
-      auto-rotate
-      environment-image="https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/NeutralEnvironment/NeutralEnvironment.hdr"
-      shadow-intensity="1"
-      exposure="1"
-      style="width: 100%; height: 300px; display: none;"
-    >
-      <button slot="interaction-prompt" class="ar-button">Tap to Interact with 3D Model</button>
-    </model-viewer>
+    <!-- AR Scene Viewer link -->
+    <a id="arLink" class="ar-button" target="_blank">
+      Tap to View in AR
+    </a>
 
-    <p class="note">Works on Android browsers only</p>
+    <p class="note">Works on Android Chrome only</p>
   </div>
 
   <script src="main.js"></script>

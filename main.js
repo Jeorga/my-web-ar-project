@@ -1,29 +1,29 @@
 function isAndroid() {
-  return /Android/.test(navigator.userAgent);
+  return /Android/i.test(navigator.userAgent);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
   const modelSelect = document.getElementById('modelSelect');
-  const modelViewer = document.getElementById('modelViewer');
+  const arLink = document.getElementById('arLink');
   const note = document.querySelector('.note');
 
-  // Restrict to Android only
+  function updateLink(model) {
+    const modelUrl = encodeURIComponent(`https://yourdomain.com/assets/models/${model}`);
+    const fallbackUrl = encodeURIComponent(`https://yourdomain.com/fallback.html`);
+
+    arLink.href = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_preferred#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`;
+  }
+
   if (!isAndroid()) {
-    note.textContent = 'This feature only works on Android devices.';
-    modelSelect.disabled = true;
-    modelViewer.style.display = 'none';
+    arLink.style.display = 'none';
+    modelSelect.style.display = 'none';
+    note.textContent = "This AR experience is only available on Android Chrome.";
     return;
   }
 
-  // Set default model
-  modelViewer.src = `assets/models/${modelSelect.value}`;
+  updateLink(modelSelect.value);
 
-  // Update model when dropdown changes
   modelSelect.addEventListener('change', () => {
-    modelViewer.src = `assets/models/${modelSelect.value}`;
+    updateLink(modelSelect.value);
   });
-
-  // Show model-viewer and update note
-  modelViewer.style.display = 'block';
-  note.textContent = 'Use your Android browser to view and interact with 3D models.';
 });
