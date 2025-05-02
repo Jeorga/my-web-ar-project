@@ -174,7 +174,7 @@ async function placeModel() {
     currentModel = null;
   }
 
-  const modelPath = assets/models/${modelDropdown.value};
+  const modelPath = `assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
@@ -231,7 +231,7 @@ function render(frame) {
     const now = performance.now();
 
     if (now - lastUpdate > 100) {
-      infoDiv.textContent = Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)};
+      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
       lastUpdate = now;
     }
 
