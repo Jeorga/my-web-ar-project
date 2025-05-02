@@ -2,18 +2,12 @@ let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
 let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
-
+const loader = new THREE.GLTFLoader();
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
-
-// Set up GLTFLoader with DRACOLoader
-const loader = new THREE.GLTFLoader();
-const dracoLoader = new THREE.DRACOLoader();
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-loader.setDRACOLoader(dracoLoader);
 
 window.onload = () => {
   initScene();
@@ -25,16 +19,16 @@ window.onload = () => {
 function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-
-  if (renderer) document.body.removeChild(renderer.domElement);
-
+  
+  if (renderer) {
+    document.body.removeChild(renderer.domElement);
+  }
+  
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
   renderer.xr.setReferenceSpaceType('local-floor');
-  renderer.setClearColor(0x000000, 0); // Ensure transparent background
-  renderer.autoClear = true;
   document.body.appendChild(renderer.domElement);
 
   setupLighting();
@@ -54,24 +48,14 @@ function initScene() {
 }
 
 function setupLighting() {
-  // Strong ambient light to ensure model is well-lit
-  scene.add(new THREE.AmbientLight(0xffffff, 2.0));
-
-  // Directional light for additional illumination
-  const directional = new THREE.DirectionalLight(0xffffff, 1.5);
+  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
+  const directional = new THREE.DirectionalLight(0xffffff, 20);
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
-
-  // Backlight to reduce dark spots
-  const backlight = new THREE.DirectionalLight(0xffffff, 1.0);
+  const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
-
-  // Hemisphere light for soft, even lighting
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-  hemiLight.position.set(0, 20, 0);
-  scene.add(hemiLight);
 }
 
 async function startAR() {
@@ -81,19 +65,22 @@ async function startAR() {
 
   if (!navigator.xr) {
     alert("WebXR not supported");
-    resetButton(button);
+    button.disabled = false;
+    button.innerText = "Start AR";
     return;
   }
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
   if (!supported) {
     alert("immersive-ar not supported");
-    resetButton(button);
+    button.disabled = false;
+    button.innerText = "Start AR";
     return;
   }
 
   try {
     initScene();
+    
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
@@ -109,20 +96,16 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
-
     document.getElementById('modelSelector').style.display = 'none';
     exitButton.style.display = 'block';
-    resetButton(button);
+    button.disabled = false;
+    button.innerText = "Start AR";
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
-    resetButton(button);
+    button.disabled = false;
+    button.innerText = "Start AR";
   }
-}
-
-function resetButton(button) {
-  button.disabled = false;
-  button.innerText = "Start AR";
 }
 
 function exitAR() {
@@ -137,15 +120,15 @@ function onSessionEnd() {
   if (renderer.xr.isPresenting) {
     renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
   }
-
+  
   renderer.setAnimationLoop(null);
-
+  
   if (xrSession) {
     xrSession.removeEventListener('end', onSessionEnd);
     xrSession.removeEventListener('visibilitychange', onVisibilityChange);
     xrSession = null;
   }
-
+  
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
@@ -193,21 +176,9 @@ async function placeModel() {
 
   const modelPath = `assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
-
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
-    currentModel.scale.set(1, 1, 1);
-
-    // Fix transparency by setting material properties
-    currentModel.traverse((child) => {
-      if (child.isMesh) {
-        child.material.transparent = false;
-        child.material.opacity = 1.0;
-        child.material.depthTest = true;
-        child.material.depthWrite = true;
-        child.material.needsUpdate = true;
-      }
-    });
+    currentModel.scale.set(0.1, 0.1, 0.1);
 
     const frame = renderer.xr.getFrame();
     if (frame && xrHitTestSource && xrReferenceSpace) {
@@ -217,6 +188,7 @@ async function placeModel() {
         if (pose) {
           const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
           currentModel.applyMatrix4(matrix);
+
           try {
             modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
           } catch (e) {
