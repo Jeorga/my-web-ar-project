@@ -28,7 +28,7 @@ function initScene() {
 
   if (renderer) document.body.removeChild(renderer.domElement);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // Set alpha to false to avoid transparency in background
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
@@ -185,6 +185,18 @@ async function placeModel() {
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
     currentModel.scale.set(1, 1, 1);
+
+    // Force model to be opaque
+    currentModel.traverse((child) => {
+      if (child.isMesh) {
+        child.material.transparent = false;
+        child.material.opacity = 1;
+        child.material.alphaTest = 0.0;
+        child.material.premultipliedAlpha = false;
+        child.material.depthWrite = true;
+        child.material.depthTest = true;
+      }
+    });
 
     const frame = renderer.xr.getFrame();
     if (frame && xrHitTestSource && xrReferenceSpace) {
