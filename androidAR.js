@@ -53,7 +53,7 @@ function initScene() {
 
 function setupLighting() {
   scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-  const directional = new THREE.DirectionalLight(0xffffff, 20);
+  const directional = new THREE.DirectionalLight(0xffffff, 1);
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
