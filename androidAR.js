@@ -2,12 +2,18 @@ let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
 let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
-const loader = new THREE.GLTFLoader();
+
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
+
+// Set up GLTFLoader with DRACOLoader
+const loader = new THREE.GLTFLoader();
+const dracoLoader = new THREE.DRACOLoader();
+dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+loader.setDRACOLoader(dracoLoader);
 
 window.onload = () => {
   initScene();
@@ -19,11 +25,9 @@ window.onload = () => {
 function initScene() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 100);
-  
-  if (renderer) {
-    document.body.removeChild(renderer.domElement);
-  }
-  
+
+  if (renderer) document.body.removeChild(renderer.domElement);
+
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -65,22 +69,19 @@ async function startAR() {
 
   if (!navigator.xr) {
     alert("WebXR not supported");
-    button.disabled = false;
-    button.innerText = "Start AR";
+    resetButton(button);
     return;
   }
 
   const supported = await navigator.xr.isSessionSupported('immersive-ar');
   if (!supported) {
     alert("immersive-ar not supported");
-    button.disabled = false;
-    button.innerText = "Start AR";
+    resetButton(button);
     return;
   }
 
   try {
     initScene();
-    
     xrSession = await navigator.xr.requestSession('immersive-ar', {
       requiredFeatures: ['local-floor'],
       optionalFeatures: ['hit-test', 'dom-overlay', 'anchors'],
@@ -96,16 +97,20 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
+
     document.getElementById('modelSelector').style.display = 'none';
     exitButton.style.display = 'block';
-    button.disabled = false;
-    button.innerText = "Start AR";
+    resetButton(button);
   } catch (err) {
     console.error("Failed to start AR:", err);
     alert("AR failed: " + err.message);
-    button.disabled = false;
-    button.innerText = "Start AR";
+    resetButton(button);
   }
+}
+
+function resetButton(button) {
+  button.disabled = false;
+  button.innerText = "Start AR";
 }
 
 function exitAR() {
@@ -120,15 +125,15 @@ function onSessionEnd() {
   if (renderer.xr.isPresenting) {
     renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
   }
-  
+
   renderer.setAnimationLoop(null);
-  
+
   if (xrSession) {
     xrSession.removeEventListener('end', onSessionEnd);
     xrSession.removeEventListener('visibilitychange', onVisibilityChange);
     xrSession = null;
   }
-  
+
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
@@ -176,6 +181,7 @@ async function placeModel() {
 
   const modelPath = `assets/models/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
+
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
     currentModel.scale.set(0.1, 0.1, 0.1);
@@ -188,7 +194,6 @@ async function placeModel() {
         if (pose) {
           const matrix = new THREE.Matrix4().fromArray(pose.transform.matrix);
           currentModel.applyMatrix4(matrix);
-
           try {
             modelAnchor = await xrSession.createAnchor(pose.transform, xrReferenceSpace);
           } catch (e) {
