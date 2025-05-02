@@ -28,7 +28,7 @@ function initScene() {
 
   if (renderer) document.body.removeChild(renderer.domElement);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false }); // Set alpha to false to avoid transparency in background
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
@@ -57,9 +57,14 @@ function setupLighting() {
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
+
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
+
+  // Additional ambient light to reduce transparency effect
+  const additionalAmbientLight = new THREE.AmbientLight(0x404040, 0.5);
+  scene.add(additionalAmbientLight);
 }
 
 async function startAR() {
@@ -186,15 +191,11 @@ async function placeModel() {
     currentModel = gltf.scene;
     currentModel.scale.set(1, 1, 1);
 
-    // Force model to be opaque
+    // Apply materials to fix transparency issues
     currentModel.traverse((child) => {
       if (child.isMesh) {
-        child.material.transparent = false;
-        child.material.opacity = 1;
-        child.material.alphaTest = 0.0;
-        child.material.premultipliedAlpha = false;
-        child.material.depthWrite = true;
-        child.material.depthTest = true;
+        child.material.transparent = false;  // Disable transparency
+        child.material.opacity = 1;  // Full opacity
       }
     });
 
