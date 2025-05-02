@@ -184,7 +184,7 @@ async function placeModel() {
 
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
-    currentModel.scale.set(0.1, 0.1, 0.1);
+    currentModel.scale.set(1, 1, 1);
 
     const frame = renderer.xr.getFrame();
     if (frame && xrHitTestSource && xrReferenceSpace) {
