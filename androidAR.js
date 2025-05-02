@@ -3,9 +3,6 @@ let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 const loader = new THREE.GLTFLoader();
-const dracoLoader = new THREE.DRACOLoader();
-dracoLoader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-loader.setDRACOLoader(dracoLoader);
 const forward = new THREE.Vector3(0, 0, -1);
 const targetPos = new THREE.Vector3();
 let lastUpdate = 0;
@@ -177,7 +174,7 @@ async function placeModel() {
     currentModel = null;
   }
 
-  const modelPath = `assets/models/${modelDropdown.value}`;
+  const modelPath = assets/models/${modelDropdown.value};
   loadingDiv.style.display = 'block';
   loader.load(modelPath, async (gltf) => {
     currentModel = gltf.scene;
@@ -234,7 +231,7 @@ function render(frame) {
     const now = performance.now();
 
     if (now - lastUpdate > 100) {
-      infoDiv.textContent = `Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)}`;
+      infoDiv.textContent = Camera Position: X: ${pos.x.toFixed(2)}, Y: ${pos.y.toFixed(2)}, Z: ${pos.z.toFixed(2)};
       lastUpdate = now;
     }
 
