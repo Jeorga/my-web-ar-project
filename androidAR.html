@@ -4,7 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Android AR Experience</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+    #info, #warning, #loading {
+      position: absolute;
+      color: white;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      display: none;
+    }
+    #info { top: 10px; left: 10px; }
+    #warning { top: 50px; left: 10px; }
+    #loading { top: 90px; left: 10px; }
+    #modelSelector {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      color: white;
+    }
+    #exitButton {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      padding: 10px;
+      display: none;
+    }
+    .back-button {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      padding: 10px;
+    }
+  </style>
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>

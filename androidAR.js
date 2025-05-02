@@ -33,6 +33,8 @@ function initScene() {
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.xr.enabled = true;
   renderer.xr.setReferenceSpaceType('local-floor');
+  renderer.setClearColor(0x000000, 0); // Ensure transparent background
+  renderer.autoClear = true;
   document.body.appendChild(renderer.domElement);
 
   setupLighting();
@@ -52,19 +54,24 @@ function initScene() {
 }
 
 function setupLighting() {
-  scene.add(new THREE.AmbientLight(0xffffff, 1.5));
-  const directional = new THREE.DirectionalLight(0xffffff, 1);
+  // Strong ambient light to ensure model is well-lit
+  scene.add(new THREE.AmbientLight(0xffffff, 2.0));
+
+  // Directional light for additional illumination
+  const directional = new THREE.DirectionalLight(0xffffff, 1.5);
   directional.position.set(1, 3, 2);
   directional.castShadow = true;
   scene.add(directional);
 
-  const backlight = new THREE.DirectionalLight(0xffffff, 1);
+  // Backlight to reduce dark spots
+  const backlight = new THREE.DirectionalLight(0xffffff, 1.0);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
 
-  // Additional ambient light to reduce transparency effect
-  const additionalAmbientLight = new THREE.AmbientLight(0x404040, 0.5);
-  scene.add(additionalAmbientLight);
+  // Hemisphere light for soft, even lighting
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+  hemiLight.position.set(0, 20, 0);
+  scene.add(hemiLight);
 }
 
 async function startAR() {
@@ -191,11 +198,14 @@ async function placeModel() {
     currentModel = gltf.scene;
     currentModel.scale.set(1, 1, 1);
 
-    // Apply materials to fix transparency issues
+    // Fix transparency by setting material properties
     currentModel.traverse((child) => {
       if (child.isMesh) {
-        child.material.transparent = false;  // Disable transparency
-        child.material.opacity = 1;  // Full opacity
+        child.material.transparent = false;
+        child.material.opacity = 1.0;
+        child.material.depthTest = true;
+        child.material.depthWrite = true;
+        child.material.needsUpdate = true;
       }
     });
 
