@@ -14,17 +14,22 @@
     <label for="modelDropdown">Choose a model:</label>
     <select id="modelDropdown">
       <option value="aoiBa.glb">Model A</option>
-      <option value="aoiBtest.glb">Model B</option>
+      <option value="aoiBa_draco.glb">Model B</option>
       <option value="twoMachines_blender.glb">Model C</option>
       <option value="aoi_tripo_pbr.glb">Model D</option>
       <option value="3dmodelconverter_convert3d.glb">Model E</option>
     </select>
     <button id="arButton">Start AR</button>
   </div>
-  <button id="exitButton">Exit AR</button>
+  <button id="exitButton" style="display:none;">Exit AR</button>
   <button class="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+
+  <!-- Three.js and loaders -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
+
+  <!-- Your custom AR script -->
   <script src="androidAR.js"></script>
 </body>
 </html>
