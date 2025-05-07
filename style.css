@@ -138,10 +138,12 @@ select {
 
 .model-control {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+  flex-direction: column; /* Stack items vertically */
+  align-items: flex-start; /* Align to left */
+  gap: 6px; /* Spacing between label and select */
+  width: 100%;
 }
+
 
 #modelSelector label {
   font-size: 16px;
