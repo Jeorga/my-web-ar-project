@@ -102,6 +102,7 @@ select {
 }
 
 #arButton {
+  font-family: 'Russo One', sans-serif; /* Apply the new font */
   margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
@@ -111,7 +112,6 @@ select {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  font-family: 'Courier New', Courier, monospace; /* <-- Change font here */
 }
 
 #modelSelector {
