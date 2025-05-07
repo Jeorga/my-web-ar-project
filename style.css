@@ -21,10 +21,25 @@ h1 {
 }
 
 select {
-  padding: 10px;
+  padding: 12px 16px;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 20px;
+  background: linear-gradient(145deg, #fff, #f3f3f3);
+  border: 1px solid #ddd;
+  transition: all 0.3s ease;
+  outline: none;
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+select:hover {
+  background-color: #e2e2e2;
+}
+
+select:focus {
+  border-color: #4CAF50;
+  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
 }
 
 .ar-button {
@@ -62,7 +77,7 @@ select {
   bottom: 80px;
   right: 20px;
   color: white;
-  display: none; /* or flex when visible */
+  display: none;
 }
 
 .back-button {
@@ -102,7 +117,7 @@ select {
 }
 
 #arButton {
-  font-family: 'Russo One', sans-serif; /* Apply the new font */
+  font-family: 'Russo One', sans-serif;
   margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
@@ -112,12 +127,12 @@ select {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  width: 100%; /* Keep it at the bottom and take the full width */
+  width: 100%;
 }
 
 #modelSelector {
   position: absolute;
-  bottom: 140px; /* Lowering the whole selector */
+  bottom: 140px;
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
@@ -133,28 +148,27 @@ select {
   flex-direction: column;
   align-items: center;
   gap: 12px;
-  margin-top: 20px; /* Adjust this to lower the dropdown */
 }
 
 .model-control {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Align the label to the left */
+  justify-content: flex-start;
   gap: 10px;
-  width: 100%; /* Allow it to take the full width of the selector */
+  width: 100%;
 }
 
 #modelSelector select {
   margin-left: 10px;
   font-size: 16px;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 12px;
+  border-radius: 8px;
   background-color: #111;
   color: #00ffc3;
   border: 1px solid #00ffc3;
   font-family: 'Orbitron', sans-serif;
   outline: none;
-  flex: 1; /* Allow dropdown to grow and stay centered */
+  flex: 1;
 }
 
 #warning {
