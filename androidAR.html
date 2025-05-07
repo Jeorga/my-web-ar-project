@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Android AR Experience</title>
   <link rel="stylesheet" href="style.css" />
+  <!-- Font Awesome for home icon -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
@@ -15,7 +16,7 @@
 
   <div id="modelSelector">
     <div class="model-control">
-      <label for="modelDropdown">Choose:</label>
+      <label for="modelDropdown">Choose here:</label>
       <select id="modelDropdown">
         <option value="aoiBa.glb">Model A</option>
         <option value="aoiBa_draco.glb">Model B</option>
@@ -25,20 +26,23 @@
       </select>
     </div>
     <button id="arButton">Start AR</button>
-  </div>   
+  </div>  
 
   <button id="exitButton" style="display: none;" title="Exit AR">
     <i class="fas fa-sign-out-alt"></i>
   </button>  
 
+  <!-- Updated back to home button with icon -->
   <button class="back-button" onclick="window.location.href='index.html'">
     <i class="fas fa-home"></i>
   </button>
 
+  <!-- Three.js and loaders -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
 
+  <!-- Your custom AR script -->
   <script src="androidAR.js"></script>
 </body>
 </html>

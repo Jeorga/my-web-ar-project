@@ -21,25 +21,10 @@ h1 {
 }
 
 select {
-  padding: 12px 16px;
+  padding: 10px;
   font-size: 16px;
-  border-radius: 12px;
+  border-radius: 8px;
   margin-bottom: 20px;
-  background: linear-gradient(145deg, #fff, #f3f3f3);
-  border: 1px solid #ddd;
-  transition: all 0.3s ease;
-  outline: none;
-  color: #333;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-select:hover {
-  background-color: #e2e2e2;
-}
-
-select:focus {
-  border-color: #4CAF50;
-  box-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
 }
 
 .ar-button {
@@ -77,7 +62,7 @@ select:focus {
   bottom: 80px;
   right: 20px;
   color: white;
-  display: none;
+  display: none; /* or flex when visible */
 }
 
 .back-button {
@@ -117,7 +102,6 @@ select:focus {
 }
 
 #arButton {
-  font-family: 'Russo One', sans-serif;
   margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
@@ -127,7 +111,7 @@ select:focus {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  width: 100%;
+  font-family: 'Courier New', Courier, monospace; /* <-- Change font here */
 }
 
 #modelSelector {
@@ -135,50 +119,38 @@ select:focus {
   bottom: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: #fff;
-  padding: 16px 24px;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
+  padding: 16px 32px;
+  border-radius: 14px;
+  color: #00ffc3;
   z-index: 100;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+  font-family: 'Orbitron', sans-serif;
+  border: 1px solid rgba(0, 255, 200, 0.5);
+  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
-  width: 90%;
-  max-width: 340px;
+  gap: 12px;
 }
 
 .model-control {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 12px;
-}
-
-#modelSelector label {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
+  justify-content: center;
+  gap: 10px;
 }
 
 #modelSelector select {
-  flex: 1;
+  margin-left: 10px;
   font-size: 16px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  border: 1px solid #ccc;
-  background-color: #f9f9f9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  color: #333;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #111;
+  color: #00ffc3;
+  border: 1px solid #00ffc3;
+  font-family: 'Orbitron', sans-serif;
   outline: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 12px;
 }
 
 #warning {
