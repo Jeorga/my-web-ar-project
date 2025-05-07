@@ -41,25 +41,36 @@ select {
   background-color: #005fcc;
 }
 
+#exitButton,
 .back-button {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  font-size: 22px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  z-index: 150;
+}
+
+#exitButton {
+  background-color: #f44336;
+  position: absolute;
+  bottom: 80px;
+  right: 20px;
+  color: white;
+  display: none; /* or flex when visible */
+}
+
+.back-button {
+  background-color: #6c757d;
   position: absolute;
   bottom: 20px;
   right: 20px;
-  background-color: #6c757d;
   color: white;
-  border: none;
-  padding: 12px;
-  font-size: 20px; /* Changed from 16px to better fit icon */
-  border-radius: 12px;
-  cursor: pointer;
-  z-index: 150; /* Higher than #modelSelector (z-index: 100) */
-  display: flex; /* New: to center icon */
-  align-items: center; /* New */
-  justify-content: center; /* New */
-}
-
-.back-button i {
-  pointer-events: none; /* Prevent icon from blocking button click */
 }
 
 .note {
@@ -101,25 +112,6 @@ select {
   cursor: pointer;
   z-index: 100;
 }
-
-#exitButton {
-  position: absolute;
-  bottom: 80px;
-  right: 20px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 12px;
-  font-size: 20px;
-  border-radius: 12px;
-  cursor: pointer;
-  z-index: 150;
-  display: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 
 #modelSelector {
   position: absolute;
