@@ -118,18 +118,32 @@ select {
   bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 12px 20px;
-  border-radius: 10px;
-  color: white;
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
+  padding: 16px 24px;
+  border-radius: 14px;
+  color: #00ffc3;
   z-index: 100;
+  box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
+  font-family: 'Orbitron', sans-serif; /* Optional futuristic font */
+  border: 1px solid rgba(0, 255, 200, 0.5);
+  backdrop-filter: blur(6px);
+  transition: all 0.3s ease;
 }
 
 #modelSelector select {
   margin-left: 10px;
   font-size: 16px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background-color: #111;
+  color: #00ffc3;
+  border: 1px solid #00ffc3;
+  font-family: 'Orbitron', sans-serif;
+  outline: none;
+}
+
+#modelSelector:hover {
+  box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
 }
 
 #warning {
