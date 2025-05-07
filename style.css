@@ -104,18 +104,22 @@ select {
 
 #exitButton {
   position: absolute;
-  top: 20px;
+  bottom: 80px; /* Above the home button */
   right: 20px;
-  padding: 12px 24px;
-  font-size: 16px;
+  width: 52px;
+  height: 52px;
   background-color: #f44336;
   color: white;
   border: none;
-  border-radius: 8px;
+  font-size: 20px;
+  border-radius: 12px;
   cursor: pointer;
-  z-index: 100;
-  display: none;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 
 #modelSelector {
   position: absolute;
