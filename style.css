@@ -115,16 +115,16 @@ select {
 
 #modelSelector {
   position: absolute;
-  bottom: 20px;
+  bottom: 140px; /* Moved higher above Exit AR (was 20px) */
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
-  padding: 16px 24px;
+  padding: 16px 32px; /* Increased padding for more width (~0.2cm = 8px) */
   border-radius: 14px;
   color: #00ffc3;
   z-index: 100;
   box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
-  font-family: 'Orbitron', sans-serif; /* Optional futuristic font */
+  font-family: 'Orbitron', sans-serif;
   border: 1px solid rgba(0, 255, 200, 0.5);
   backdrop-filter: blur(6px);
   transition: all 0.3s ease;
