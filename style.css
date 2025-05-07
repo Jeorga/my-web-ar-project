@@ -104,17 +104,17 @@ select {
 
 #exitButton {
   position: absolute;
-  bottom: 80px; /* Above the home button */
+  bottom: 80px;
   right: 20px;
-  width: 52px;
-  height: 52px;
   background-color: #f44336;
   color: white;
   border: none;
+  padding: 12px;
   font-size: 20px;
   border-radius: 12px;
   cursor: pointer;
   z-index: 150;
+  display: none;
   display: flex;
   align-items: center;
   justify-content: center;
