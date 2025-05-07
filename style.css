@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background: #f9f9f9;
   color: #333;
   display: flex;
@@ -62,7 +62,7 @@ select {
   bottom: 80px;
   right: 20px;
   color: white;
-  display: none; /* or flex when visible */
+  display: none;
 }
 
 .back-button {
@@ -79,7 +79,8 @@ select {
   font-size: 14px;
 }
 
-#info, #loading {
+#info,
+#loading {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -111,7 +112,7 @@ select {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
-  font-family: 'Courier New', Courier, monospace; /* <-- Change font here */
+  font-family: 'Poppins', Courier, monospace;
 }
 
 #modelSelector {
@@ -119,37 +120,48 @@ select {
   bottom: 140px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
-  padding: 16px 32px;
-  border-radius: 14px;
-  color: #00ffc3;
+  background: white;
+  padding: 20px 32px;
+  border-radius: 16px;
+  color: #333;
   z-index: 100;
-  box-shadow: 0 0 12px rgba(0, 255, 200, 0.3);
-  font-family: 'Orbitron', sans-serif;
-  border: 1px solid rgba(0, 255, 200, 0.5);
-  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid #e0e0e0;
+  backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  transition: all 0.3s ease;
 }
 
 .model-control {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+#modelSelector label {
+  font-size: 16px;
+  color: #555;
+  font-weight: 600;
 }
 
 #modelSelector select {
-  margin-left: 10px;
-  font-size: 16px;
-  padding: 6px 12px;
-  border-radius: 6px;
-  background-color: #111;
-  color: #00ffc3;
-  border: 1px solid #00ffc3;
-  font-family: 'Orbitron', sans-serif;
+  font-size: 15px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  transition: border-color 0.3s ease;
+}
+
+#modelSelector select:focus {
+  border-color: #007aff;
   outline: none;
 }
 

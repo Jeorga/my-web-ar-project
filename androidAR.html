@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Android AR Experience</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Font Awesome for home icon -->
+
+  <!-- Fonts & Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  
+  <!-- External CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
@@ -16,7 +19,7 @@
 
   <div id="modelSelector">
     <div class="model-control">
-      <label for="modelDropdown">Choose here:</label>
+      <label for="modelDropdown">Choose your model:</label>
       <select id="modelDropdown">
         <option value="aoiBa.glb">Model A</option>
         <option value="aoiBa_draco.glb">Model B</option>
@@ -28,11 +31,10 @@
     <button id="arButton">Start AR</button>
   </div>  
 
-  <button id="exitButton" style="display: none;" title="Exit AR">
+  <button id="exitButton" title="Exit AR">
     <i class="fas fa-sign-out-alt"></i>
   </button>  
 
-  <!-- Updated back to home button with icon -->
   <button class="back-button" onclick="window.location.href='index.html'">
     <i class="fas fa-home"></i>
   </button>
