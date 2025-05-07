@@ -102,7 +102,6 @@ select {
 }
 
 #arButton {
-  margin-top: 10px;
   padding: 12px 24px;
   font-size: 16px;
   background-color: #4CAF50;
@@ -111,15 +110,17 @@ select {
   border-radius: 8px;
   cursor: pointer;
   z-index: 100;
+  width: auto; /* Let the width adapt to content */
+  display: block; /* Ensure button takes up block-level space */
 }
 
 #modelSelector {
   position: absolute;
-  bottom: 140px; /* Moved higher above Exit AR (was 20px) */
+  bottom: 140px; /* Position above the Exit AR button */
   left: 50%;
   transform: translateX(-50%);
   background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(40, 40, 40, 0.9));
-  padding: 16px 32px; /* Increased padding for more width (~0.2cm = 8px) */
+  padding: 16px 32px; /* Added padding to increase width */
   border-radius: 14px;
   color: #00ffc3;
   z-index: 100;
@@ -127,6 +128,10 @@ select {
   font-family: 'Orbitron', sans-serif;
   border: 1px solid rgba(0, 255, 200, 0.5);
   backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
+  justify-content: center; /* Center content vertically */
   transition: all 0.3s ease;
 }
 
@@ -140,10 +145,6 @@ select {
   border: 1px solid #00ffc3;
   font-family: 'Orbitron', sans-serif;
   outline: none;
-}
-
-#modelSelector:hover {
-  box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
 }
 
 #warning {
