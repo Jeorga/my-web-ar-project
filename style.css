@@ -102,19 +102,6 @@ select {
   z-index: 200;
 }
 
-#arButton {
-  margin-top: 10px;
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  z-index: 100;
-  font-family: 'Poppins', Courier, monospace;
-}
-
 #modelSelector {
   position: absolute;
   bottom: 140px;
@@ -136,6 +123,22 @@ select {
   transition: all 0.3s ease;
 }
 
+#arButton {
+  margin-top: 10px;
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 100;
+  font-family: 'Poppins', Courier, monospace;
+  width: 100%; /* Take full width */
+  max-width: 300px; /* Limit the width */
+  text-align: center; /* Center text */
+}
+
 .model-control {
   display: flex;
   flex-direction: column; /* Stack items vertically */
@@ -143,7 +146,6 @@ select {
   gap: 6px; /* Spacing between label and select */
   width: 100%;
 }
-
 
 #modelSelector label {
   font-size: 16px;
