@@ -1,5 +1,5 @@
 let scene, camera, renderer, xrSession, xrReferenceSpace, xrHitTestSource;
-let infoDiv, warningDiv, loadingDiv, modelDropdown, exitButton;
+let infoDiv, warningDiv, loadingDiv, categoryDropdown, modelDropdown, exitButton;
 let currentModel = null;
 let modelAnchor = null;
 
@@ -14,11 +14,28 @@ let lastUpdate = 0;
 let lastPlacementTime = 0;
 const PLACEMENT_COOLDOWN = 200;
 
+// Define categories and their models
+const categories = {
+  A: [
+    { value: 'aoiBa.glb', label: 'A1' },
+    { value: '3dmodelconverter_convert3d.glb', label: 'A2' }
+  ],
+  B: [
+    { value: 'aoiBa_draco.glb', label: 'B1' },
+    { value: 'twoMachines_blender.glb', label: 'B2' }
+  ],
+  C: [
+    { value: 'twoMachines_blender.glb', label: 'C1' },
+    { value: 'aoi_tripo_pbr.glb', label: 'C2' }
+  ]
+};
+
 window.onload = () => {
   initScene();
   document.getElementById('arButton').addEventListener('click', startAR);
   exitButton = document.getElementById('exitButton');
   exitButton.addEventListener('click', exitAR);
+  setupCategoryDropdown();
 };
 
 function initScene() {
@@ -41,6 +58,7 @@ function initScene() {
   infoDiv = document.getElementById('info');
   warningDiv = document.getElementById('warning');
   loadingDiv = document.getElementById('loading');
+  categoryDropdown = document.getElementById('categoryDropdown');
   modelDropdown = document.getElementById('modelDropdown');
 
   window.addEventListener('resize', () => {
@@ -61,6 +79,22 @@ function setupLighting() {
   const backlight = new THREE.DirectionalLight(0xffffff, 1);
   backlight.position.set(-1, -1, -1);
   scene.add(backlight);
+}
+
+function setupCategoryDropdown() {
+  categoryDropdown.addEventListener('change', updateModelDropdown);
+  updateModelDropdown();
+}
+
+function updateModelDropdown() {
+  const category = categoryDropdown.value;
+  modelDropdown.innerHTML = '';
+  categories[category].forEach(model => {
+    const option = document.createElement('option');
+    option.value = model.value;
+    option.textContent = model.label;
+    modelDropdown.appendChild(option);
+  });
 }
 
 async function startAR() {
@@ -179,7 +213,7 @@ async function placeModel() {
     currentModel = null;
   }
 
-  const modelPath = `assets/models/${modelDropdown.value}`;
+  const modelPath = `assets/models/${categoryDropdown.value}/${modelDropdown.value}`;
   loadingDiv.style.display = 'block';
 
   loader.load(modelPath, async (gltf) => {

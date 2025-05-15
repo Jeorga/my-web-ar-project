@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Android AR Experience</title>
-
-  <!-- Fonts & Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  
-  <!-- External CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 </head>
 <body>
   <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
@@ -19,32 +17,24 @@
 
   <div id="modelSelector">
     <div class="model-control">
-      <label for="modelDropdown">Choose your model:</label>
-      <select id="modelDropdown">
-        <option value="aoiBa.glb">Model A</option>
-        <option value="aoiBa_draco.glb">Model B</option>
-        <option value="twoMachines_blender.glb">Model C</option>
-        <option value="aoi_tripo_pbr.glb">Model D</option>
-        <option value="3dmodelconverter_convert3d.glb">Model E</option>
+      <label for="categoryDropdown">Choose your category:</label>
+      <select id="categoryDropdown">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
       </select>
     </div>
-    <button id="arButton">Start AR</button>
-  </div>  
+    <div class="model-control">
+      <label for="modelDropdown">Choose your model:</label>
+      <select id="modelDropdown">
+        <!-- Options will be populated dynamically based on category -->
+      </select>
+    </div>
+    <button id="arButton" class="ar-button">Start AR</button>
+  </div>
 
-  <button id="exitButton" title="Exit AR">
-    <i class="fas fa-sign-out-alt"></i>
-  </button>  
+  <button id="exitButton">✕</button>
 
-  <button class="back-button" onclick="window.location.href='index.html'">
-    <i class="fas fa-home"></i>
-  </button>
-
-  <!-- Three.js and loaders -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
-
-  <!-- Your custom AR script -->
   <script src="androidAR.js"></script>
 </body>
 </html>
