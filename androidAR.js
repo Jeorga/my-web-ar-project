@@ -19,6 +19,14 @@ window.onload = () => {
   document.getElementById('arButton').addEventListener('click', startAR);
   exitButton = document.getElementById('exitButton');
   exitButton.addEventListener('click', exitAR);
+
+  // ✅ Listen to model changes even during AR
+  modelDropdown = document.getElementById('modelDropdown');
+  modelDropdown.addEventListener('change', () => {
+    if (xrSession && renderer.xr.isPresenting) {
+      placeModel();
+    }
+  });
 };
 
 function initScene() {
@@ -101,7 +109,8 @@ async function startAR() {
 
     renderer.xr.setSession(xrSession);
     animate();
-    document.getElementById('modelSelector').style.display = 'none';
+
+    document.getElementById('modelSelector').style.display = 'block'; // ✅ still visible
     exitButton.style.display = 'block';
     button.disabled = false;
     button.innerText = "Start AR";
@@ -125,15 +134,15 @@ function onSessionEnd() {
   if (renderer.xr.isPresenting) {
     renderer.xr.getSession().end().catch(e => console.error("Error ending session:", e));
   }
-  
+
   renderer.setAnimationLoop(null);
-  
+
   if (xrSession) {
     xrSession.removeEventListener('end', onSessionEnd);
     xrSession.removeEventListener('visibilitychange', onVisibilityChange);
     xrSession = null;
   }
-  
+
   xrHitTestSource = null;
   xrReferenceSpace = null;
 
@@ -161,22 +170,10 @@ function onTap() {
 }
 
 async function placeModel() {
-  if (currentModel && modelAnchor) {
-    try {
-      const anchor = await xrSession.createAnchor(currentModel.matrix, xrReferenceSpace);
-      if (anchor) {
-        modelAnchor.cancel?.();
-        modelAnchor = anchor;
-      }
-    } catch (e) {
-      console.warn("Anchor update failed:", e);
-    }
-    return;
-  }
-
   if (currentModel) {
     scene.remove(currentModel);
     currentModel = null;
+    modelAnchor = null;
   }
 
   const modelPath = `assets/models/${modelDropdown.value}`;
