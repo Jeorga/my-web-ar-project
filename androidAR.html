@@ -1,16 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>AR Viewer for Android</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
     }
-
     button {
       margin: 8px;
       padding: 10px 20px;
@@ -21,15 +20,12 @@
       color: white;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     #ar-button {
       background-color: #28a745;
     }
-
     model-viewer {
       width: 100%;
       max-width: 500px;
@@ -47,7 +43,7 @@
 
   <model-viewer id="viewer"
     alt="3D model"
-    src=""
+    src=""  <!-- initially empty, will be set onload -->
     ar
     ar-modes="scene-viewer"
     auto-rotate

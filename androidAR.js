@@ -1,12 +1,12 @@
 let currentModelUrl = "";
 
 // Update this base URL to match your hosting path
-const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; // <-- change this
+const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; // <-- your path
 
 function selectModel(fileName) {
   const viewer = document.getElementById("viewer");
   const fullUrl = BASE_URL + fileName;
-  viewer.src = fullUrl;
+  viewer.setAttribute('src', fullUrl);  // <-- use setAttribute here!
   currentModelUrl = fullUrl;
 }
 
@@ -23,7 +23,7 @@ function launchAR() {
   window.location.href = intentUrl;
 }
 
-// Optionally load default model on startup
+// Load default model on startup
 window.onload = () => {
   selectModel("aoiBa.glb");
 };
