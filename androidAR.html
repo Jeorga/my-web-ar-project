@@ -1,50 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Android AR Experience</title>
+  <meta charset="UTF-8">
+  <title>AR Viewer for Android</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
 
-  <!-- Fonts & Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600&family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  
-  <!-- External CSS -->
-  <link rel="stylesheet" href="style.css" />
+    button {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #ar-button {
+      background-color: #28a745;
+    }
+
+    model-viewer {
+      width: 100%;
+      max-width: 500px;
+      height: 400px;
+      margin: 20px auto;
+    }
+  </style>
+
+  <!-- Google Model Viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 <body>
-  <div id="info">Camera Position: X: 0, Y: 0, Z: 0</div>
-  <div id="warning">Tracking lost - move device slowly to recover</div>
-  <div id="loading">Loading model...</div>
 
-  <div id="modelSelector">
-    <div class="model-control">
-      <label for="modelDropdown">Choose your model:</label>
-      <select id="modelDropdown">
-        <option value="aoiBa.glb">Model A</option>
-        <option value="aoiBa_draco.glb">Model B</option>
-        <option value="twoMachines_blender.glb">Model C</option>
-        <option value="aoi_tripo_pbr.glb">Model D</option>
-        <option value="3dmodelconverter_convert3d.glb">Model E</option>
-      </select>
-    </div>
-    <button id="arButton">Start AR</button>
-  </div>  
+  <h1>View 3D Models in AR (Android)</h1>
 
-  <button id="exitButton" title="Exit AR">
-    <i class="fas fa-sign-out-alt"></i>
-  </button>  
+  <model-viewer id="viewer"
+    alt="3D model"
+    src=""
+    ar
+    ar-modes="scene-viewer"
+    auto-rotate
+    camera-controls
+    shadow-intensity="1">
+  </model-viewer>
 
-  <button class="back-button" onclick="window.location.href='index.html'">
-    <i class="fas fa-home"></i>
-  </button>
+  <!-- Buttons to choose models -->
+  <div>
+    <button onclick="selectModel('aoiBa.glb')">Model A</button>
+    <button onclick="selectModel('aoiBa_draco.glb')">Model B</button>
+    <button onclick="selectModel('aoi_tripo_pbr.glb')">Model C</button>
+  </div>
 
-  <!-- Three.js and loaders -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/loaders/DRACOLoader.js"></script>
+  <button id="ar-button" onclick="launchAR()">View in AR</button>
 
-  <!-- Your custom AR script -->
-  <script src="androidAR.js"></script>
+  <script src="main.js"></script>
+
 </body>
 </html>
