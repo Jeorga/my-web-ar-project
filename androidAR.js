@@ -5,8 +5,13 @@ const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; //
 
 function selectModel(fileName) {
   const viewer = document.getElementById("viewer");
+  if (!fileName) {
+    viewer.removeAttribute('src');
+    currentModelUrl = "";
+    return;
+  }
   const fullUrl = BASE_URL + fileName;
-  viewer.setAttribute('src', fullUrl);  // <-- use setAttribute here!
+  viewer.setAttribute('src', fullUrl);
   currentModelUrl = fullUrl;
 }
 
@@ -25,5 +30,10 @@ function launchAR() {
 
 // Load default model on startup
 window.onload = () => {
-  selectModel("aoiBa.glb");
+  const defaultModel = "aoiBa.glb";
+  const selectElement = document.getElementById("modelSelect");
+  if (selectElement) {
+    selectElement.value = defaultModel;
+  }
+  selectModel(defaultModel);
 };

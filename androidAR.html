@@ -10,6 +10,14 @@
       text-align: center;
       padding: 20px;
     }
+    select {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
     button {
       margin: 8px;
       padding: 10px 20px;
@@ -51,11 +59,14 @@
     shadow-intensity="1">
   </model-viewer>
 
-  <!-- Buttons to choose models -->
+  <!-- Dropdown to choose models -->
   <div>
-    <button onclick="selectModel('aoiBa.glb')">Model A</button>
-    <button onclick="selectModel('aoiBa_draco.glb')">Model B</button>
-    <button onclick="selectModel('aoi_tripo_pbr.glb')">Model C</button>
+    <select id="modelSelect" onchange="selectModel(this.value)">
+      <option value="">-- Select a model --</option>
+      <option value="aoiBa.glb">Model A</option>
+      <option value="aoiBa_draco.glb">Model B</option>
+      <option value="aoi_tripo_pbr.glb">Model C</option>
+    </select>
   </div>
 
   <button id="ar-button" onclick="launchAR()">View in AR</button>
