@@ -30,10 +30,10 @@ function launchAR() {
 
 // Load default model on startup
 window.onload = () => {
-  const defaultModel = "aoiBa.glb";
+  currentModelUrl = "";
   const selectElement = document.getElementById("modelSelect");
   if (selectElement) {
-    selectElement.value = defaultModel;
+    selectElement.value = "";
   }
-  selectModel(defaultModel);
+  selectModel(""); // Ensures no model is shown initially
 };
