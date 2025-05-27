@@ -5,14 +5,19 @@ const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; //
 
 function selectModel(fileName) {
   const viewer = document.getElementById("viewer");
+  const arButton = document.getElementById("ar-button");
+
   if (!fileName) {
     viewer.removeAttribute('src');
     currentModelUrl = "";
+    arButton.style.display = "none"; // Hide AR button
     return;
   }
+
   const fullUrl = BASE_URL + fileName;
   viewer.setAttribute('src', fullUrl);
   currentModelUrl = fullUrl;
+  arButton.style.display = "inline-block"; // Show AR button
 }
 
 function launchAR() {
