@@ -59,20 +59,18 @@
     shadow-intensity="1">
   </model-viewer>
 
-  <!-- Dropdown to choose models -->
-  <div>
-    <select id="modelSelect" onchange="selectModel(this.value)">
+<!-- Dropdown to choose models -->
+<div>
+  <select id="modelSelect" onchange="selectModel(this.value)">
     <option value="">-- Select 3D Model --</option>
-    <option value="aoiBa_draco.glb">Model A</option>
-    <option value="twomachines_tripo_pbr.glb">Model B</option>
-    <option value="aoi_tripo_pbr.glb">Model C</option>
-    </select>
+    <!-- Options will be populated by JS -->
+  </select>
+</div>
 
-  </div>
+<button id="ar-button" onclick="launchAR()" style="display: none;">View in AR</button>
 
-  <button id="ar-button" onclick="launchAR()" style="display: none;">View in AR</button>
+<script src="androidAR.js"></script>
 
-  <script src="androidAR.js"></script>
 
 </body>
 </html>

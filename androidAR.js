@@ -1,44 +1,81 @@
-let currentModelUrl = "";
+const viewer = document.getElementById('viewer');
+const modelSelect = document.getElementById('modelSelect');
+const arButton = document.getElementById('ar-button');
 
-// Update this base URL to match your hosting path
-const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; // <-- your path
+// Django endpoint returning JSON list of 3D models
+const MODELS_API_URL = '/model_list/';  // match your urls.py path
 
-function selectModel(fileName) {
-  const viewer = document.getElementById("viewer");
-  const arButton = document.getElementById("ar-button");
+// Load models dynamically
+async function loadModels() {
+  try {
+    const res = await fetch(MODELS_API_URL);
+    if (!res.ok) throw new Error("Failed to fetch models");
+    const models = await res.json();
 
-  if (!fileName) {
-    viewer.removeAttribute('src');
-    currentModelUrl = "";
-    arButton.style.display = "none"; // Hide AR button
-    return;
+    // Clear existing options except placeholder
+    modelSelect.innerHTML = '<option value="">-- Select 3D Model --</option>';
+
+    models.forEach(model => {
+      const option = document.createElement('option');
+      option.value = model.url; // use absolute URL from Django
+      option.textContent = model.name;
+      modelSelect.appendChild(option);
+    });
+
+  } catch (err) {
+    console.error(err);
   }
-
-  const fullUrl = BASE_URL + fileName;
-  viewer.setAttribute('src', fullUrl);
-  currentModelUrl = fullUrl;
-  arButton.style.display = "inline-block"; // Show AR button
 }
 
+// Select a model for viewing
+function selectModel(url) {
+  if (url) {
+    viewer.src = url;
+    arButton.style.display = 'inline-block';
+  } else {
+    viewer.src = '';
+    arButton.style.display = 'none';
+  }
+}
+
+// Launch AR
 function launchAR() {
-  if (!currentModelUrl) {
-    alert("Please select a model first.");
-    return;
-  }
-
-  const modelUrl = encodeURIComponent(currentModelUrl);
-
-  const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
-
-  window.location.href = intentUrl;
+  viewer.activateAR();
 }
 
-// Load default model on startup
-window.onload = () => {
-  currentModelUrl = "";
-  const selectElement = document.getElementById("modelSelect");
-  if (selectElement) {
-    selectElement.value = "";
+// Optional: delete model
+async function deleteModel(fileName) {
+  try {
+    const res = await fetch(`/api/delete_model/${fileName}/`, {
+      method: 'DELETE',
+      headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    });
+    if (res.ok) {
+      alert('Deleted successfully');
+      loadModels(); // refresh dropdown
+    } else {
+      alert('Failed to delete');
+    }
+  } catch (err) {
+    console.error(err);
   }
-  selectModel(""); // Ensures no model is shown initially
-};
+}
+
+// CSRF helper
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', loadModels);
