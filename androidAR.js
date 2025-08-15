@@ -1,6 +1,5 @@
 let currentModelUrl = "";
 
-// Called whenever a model is selected
 function selectModel(fileName) {
     const viewer = document.getElementById("viewer");
     const arButton = document.getElementById("ar-button");
@@ -12,12 +11,11 @@ function selectModel(fileName) {
         return;
     }
 
-    viewer.setAttribute('src', fileName); // full URL
+    viewer.setAttribute('src', fileName);
     currentModelUrl = fileName;
     arButton.style.display = "inline-block"; // Show AR button
 }
 
-// Launch AR via Scene Viewer on Android
 function launchAR() {
     if (!currentModelUrl) {
         alert("Please select a model first.");
@@ -34,5 +32,5 @@ window.onload = () => {
     currentModelUrl = "";
     const selectElement = document.getElementById("modelSelect");
     if (selectElement) selectElement.value = "";
-    selectModel(""); // Ensures no model is shown initially
+    selectModel(""); // Ensure no model is shown initially
 };
