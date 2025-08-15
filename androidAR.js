@@ -1,44 +1,31 @@
-let currentModelUrl = "";
+const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // replace with live URL after deployment
 
-// Update this base URL to match your hosting path
-const BASE_URL = "https://jeorga.github.io/my-web-ar-project/assets/models/"; // <-- your path
+async function loadModels() {
+    try {
+        const res = await fetch(MODELS_API_URL);
+        const models = await res.json();
 
-function selectModel(fileName) {
-  const viewer = document.getElementById("viewer");
-  const arButton = document.getElementById("ar-button");
+        const select = document.getElementById('modelSelect');
+        select.innerHTML = '<option value="">-- Select 3D Model --</option>';
 
-  if (!fileName) {
-    viewer.removeAttribute('src');
-    currentModelUrl = "";
-    arButton.style.display = "none"; // Hide AR button
-    return;
-  }
-
-  const fullUrl = BASE_URL + fileName;
-  viewer.setAttribute('src', fullUrl);
-  currentModelUrl = fullUrl;
-  arButton.style.display = "inline-block"; // Show AR button
+        models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.url; // the .glb file URL
+            opt.textContent = m.name;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.error("Failed to load models:", err);
+    }
 }
 
-function launchAR() {
-  if (!currentModelUrl) {
-    alert("Please select a model first.");
-    return;
-  }
-
-  const modelUrl = encodeURIComponent(currentModelUrl);
-
-  const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
-
-  window.location.href = intentUrl;
+function selectModel(url) {
+    const viewer = document.getElementById('viewer');
+    viewer.src = url;
 }
 
-// Load default model on startup
-window.onload = () => {
-  currentModelUrl = "";
-  const selectElement = document.getElementById("modelSelect");
-  if (selectElement) {
-    selectElement.value = "";
-  }
-  selectModel(""); // Ensures no model is shown initially
-};
+// Initial load
+loadModels();
+
+// Optional: refresh every 10 seconds to reflect new uploads
+setInterval(loadModels, 10000);
