@@ -3,11 +3,7 @@ from .models import ThreeDModel
 
 def model_list(request):
     """
-    Returns all 3D models in JSON format:
-    [
-      { "name": "Model A", "url": "http://.../media/models/aoiBa_draco.glb" },
-      ...
-    ]
+    Return all 3D models in JSON format for AR frontend
     """
     models_qs = ThreeDModel.objects.all()
     data = [
