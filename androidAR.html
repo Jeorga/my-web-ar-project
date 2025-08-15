@@ -1,10 +1,11 @@
-const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // update to live URL after deployment
+const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // Update to live URL after deployment
 
 document.addEventListener("DOMContentLoaded", () => {
     const select = document.getElementById('modelSelect');
 
     async function loadModels() {
         try {
+            const currentSelection = select.value; // Save current selection
             const res = await fetch(MODELS_API_URL);
             if (!res.ok) throw new Error("Network response not OK");
 
@@ -17,17 +18,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 opt.textContent = m.name;
                 select.appendChild(opt);
             });
+
+            // Restore previous selection if it still exists
+            if (currentSelection) select.value = currentSelection;
+
         } catch (err) {
             console.error("Failed to load models:", err);
         }
     }
 
-    // When user selects a model, call selectModel from androidAR.js
+    // Update viewer and AR button when user selects a model
     select.addEventListener("change", () => {
         const url = select.value;
-        selectModel(url); // defined in androidAR.js
+        selectModel(url); // Calls androidAR.js function
     });
 
+    // Initial load
     loadModels();
-    setInterval(loadModels, 10000); // refresh every 10 seconds
+
+    // Refresh every 10 seconds to reflect new uploads
+    setInterval(loadModels, 10000);
 });

@@ -34,5 +34,5 @@ window.onload = () => {
     currentModelUrl = "";
     const selectElement = document.getElementById("modelSelect");
     if (selectElement) selectElement.value = "";
-    selectModel(""); // Ensure no model is shown initially
+    selectModel(""); // Ensures no model is shown initially
 };

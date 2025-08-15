@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Viewer for Android</title>
+  <link rel="stylesheet" href="style.css" />
+  
+  <!-- Google Model Viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+  <h1>View 3D Models in AR</h1>
+
+  <!-- Model Viewer -->
+  <model-viewer id="viewer"
+      alt="3D model"
+      ar
+      ar-modes="scene-viewer"
+      auto-rotate
+      camera-controls
+      shadow-intensity="1">
+  </model-viewer>
+
+  <!-- Dropdown for selecting models -->
+  <div>
+      <select id="modelSelect">
+          <option value="">-- Loading 3D Models --</option>
+      </select>
+  </div>
+
+  <!-- AR button -->
+  <button id="ar-button" onclick="launchAR()" style="display:none;">View in AR</button>
+
+  <!-- Scripts -->
+  <script src="androidAR.js"></script>
+  <script src="androidAR.html"></script>
+</body>
+</html>
