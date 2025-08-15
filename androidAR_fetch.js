@@ -1,7 +1,7 @@
-const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // update to live URL after deployment
+const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // update for live server
 
 document.addEventListener("DOMContentLoaded", () => {
-    const select = document.getElementById('modelSelect');
+    const select = document.getElementById("modelSelect");
 
     async function loadModels() {
         try {
@@ -13,23 +13,26 @@ document.addEventListener("DOMContentLoaded", () => {
             select.innerHTML = '<option value="">-- Select 3D Model --</option>';
 
             models.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.url; // full URL from backend
+                const opt = document.createElement("option");
+                // Make sure URL is full path
+                opt.value = m.url.startsWith("http") ? m.url : `http://127.0.0.1:8000${m.url}`;
                 opt.textContent = m.name;
                 select.appendChild(opt);
             });
 
+            // Preserve previous selection if it exists
             if (currentSelection) select.value = currentSelection;
+            selectModel(select.value); // update viewer after refresh
+
         } catch (err) {
             console.error("Failed to load models:", err);
         }
     }
 
     select.addEventListener("change", () => {
-        const url = select.value;
-        selectModel(url); // call function in androidAR.js
+        selectModel(select.value);
     });
 
     loadModels();
-    setInterval(loadModels, 10000); // refresh every 10 seconds
+    setInterval(loadModels, 10000); // refresh every 10s
 });

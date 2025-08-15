@@ -1,19 +1,19 @@
 let currentModelUrl = "";
 
-function selectModel(fileName) {
+function selectModel(url) {
     const viewer = document.getElementById("viewer");
     const arButton = document.getElementById("ar-button");
 
-    if (!fileName) {
-        viewer.removeAttribute('src');
+    if (!url) {
+        viewer.removeAttribute("src");
         currentModelUrl = "";
-        arButton.style.display = "none"; // Hide AR button
+        arButton.style.display = "none";
         return;
     }
 
-    viewer.setAttribute('src', fileName);
-    currentModelUrl = fileName;
-    arButton.style.display = "inline-block"; // Show AR button
+    viewer.src = url; // set model-viewer src
+    currentModelUrl = url;
+    arButton.style.display = "inline-block";
 }
 
 function launchAR() {
@@ -21,16 +21,6 @@ function launchAR() {
         alert("Please select a model first.");
         return;
     }
-
-    const modelUrl = encodeURIComponent(currentModelUrl);
-    const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
+    const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(currentModelUrl)}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
     window.location.href = intentUrl;
 }
-
-// Initialize on page load
-window.onload = () => {
-    currentModelUrl = "";
-    const selectElement = document.getElementById("modelSelect");
-    if (selectElement) selectElement.value = "";
-    selectModel(""); // Ensure no model is shown initially
-};
