@@ -1,33 +1,38 @@
-const MODELS_API_URL = "http://127.0.0.1:8000/api/models/"; // update to live URL after deployment
+let currentModelUrl = "";
 
-document.addEventListener("DOMContentLoaded", () => {
-    const select = document.getElementById('modelSelect');
-    const viewer = document.getElementById('viewer');
+// Called whenever a model is selected
+function selectModel(fileName) {
+    const viewer = document.getElementById("viewer");
+    const arButton = document.getElementById("ar-button");
 
-    async function loadModels() {
-        try {
-            const res = await fetch(MODELS_API_URL);
-            if (!res.ok) throw new Error("Network response not OK");
-
-            const models = await res.json();
-            select.innerHTML = '<option value="">-- Select 3D Model --</option>';
-
-            models.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.url;
-                opt.textContent = m.name;
-                select.appendChild(opt);
-            });
-        } catch (err) {
-            console.error("Failed to load models:", err);
-        }
+    if (!fileName) {
+        viewer.removeAttribute('src');
+        currentModelUrl = "";
+        arButton.style.display = "none"; // Hide AR button
+        return;
     }
 
-    select.addEventListener("change", () => {
-        const url = select.value;
-        if (url) viewer.src = url;
-    });
+    viewer.setAttribute('src', fileName); // full URL
+    currentModelUrl = fileName;
+    arButton.style.display = "inline-block"; // Show AR button
+}
 
-    loadModels();
-    setInterval(loadModels, 10000); // refresh every 10 seconds
-});
+// Launch AR via Scene Viewer on Android
+function launchAR() {
+    if (!currentModelUrl) {
+        alert("Please select a model first.");
+        return;
+    }
+
+    const modelUrl = encodeURIComponent(currentModelUrl);
+    const intentUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${modelUrl}&mode=ar_only&resizable=false#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;end;`;
+    window.location.href = intentUrl;
+}
+
+// Initialize on page load
+window.onload = () => {
+    currentModelUrl = "";
+    const selectElement = document.getElementById("modelSelect");
+    if (selectElement) selectElement.value = "";
+    selectModel(""); // Ensure no model is shown initially
+};
