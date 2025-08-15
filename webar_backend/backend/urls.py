@@ -20,9 +20,11 @@ from django.urls import path
 # 1️⃣ Import for serving uploaded files
 from django.conf import settings
 from django.conf.urls.static import static
+from models_app.views import model_list
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/models/', model_list),
 ]
 
 # 2️⃣ This will serve /media/... files during development (DEBUG=True)
