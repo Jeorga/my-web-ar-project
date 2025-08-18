@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Your app
-    "models_api",
+    "models_api.apps.ModelsApiConfig",
 ]
 
 MIDDLEWARE = [
