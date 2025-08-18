@@ -7,6 +7,7 @@ def model_list(request):
         {
             "name": m.name,
             "url": request.build_absolute_uri(m.file.url)
-        } for m in models_qs
+        }
+        for m in models_qs
     ]
     return JsonResponse(data, safe=False)
