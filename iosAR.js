@@ -1,46 +1,27 @@
-const MODELS_API_URL = "http://127.0.0.1:8000/api/models/";
-
 function isiOS() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 }
 
-async function loadModels() {
-  const modelSelect = document.getElementById("modelSelect");
-  const arLink = document.getElementById("arLink");
+window.addEventListener('DOMContentLoaded', async () => {
+  const arLink = document.getElementById('arLink');
 
-  try {
-    const res = await fetch(MODELS_API_URL);
-    if (!res.ok) throw new Error("Failed to fetch models");
-    const models = await res.json();
-
-    // Clear old options
-    modelSelect.innerHTML = "";
-
-    // Add new ones from Django
-    models.forEach(model => {
-      const option = document.createElement("option");
-      option.value = model.url;
-      option.textContent = model.name;
-      modelSelect.appendChild(option);
-    });
-
-    // Default AR link
-    if (models.length > 0) {
-      arLink.href = models[0].url;
+  if (isiOS()) {
+    try {
+      const resp = await fetch('http://127.0.0.1:8000/models3d/latest-usdz/');
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.usdz_url) {
+          arLink.href = data.usdz_url;
+        } else {
+          document.querySelector('.note').textContent = 'No USDZ file available.';
+        }
+      } else {
+        document.querySelector('.note').textContent = 'Failed to get the USDZ file.';
+      }
+    } catch (e) {
+      document.querySelector('.note').textContent = 'Error loading USDZ file.';
     }
-
-    // Update on change
-    modelSelect.addEventListener("change", () => {
-      arLink.href = modelSelect.value;
-    });
-  } catch (err) {
-    console.error("Error loading models:", err);
+  } else {
+    document.querySelector('.note').textContent = 'This feature only works on iOS Safari.';
   }
-
-  if (!isiOS()) {
-    document.querySelector(".note").textContent =
-      "This feature only works on iOS Safari.";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", loadModels);
+});
