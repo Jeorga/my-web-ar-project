@@ -1,20 +1,77 @@
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
-function isAndroid() {
-  return /Android/.test(navigator.userAgent);
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  const enterButton = document.getElementById('enterButton');
-  enterButton.addEventListener('click', () => {
-    if (isIOS()) {
-      window.location.href = 'iosAR.html';
-    } else if (isAndroid()) {
-      window.location.href = 'androidAR.html';
-    } else {
-      document.querySelector('.note').textContent = 'This AR experience is only available on iOS or Android smartphones and tablets.';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AR Viewer for Android</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
     }
-  });
-});
+    select {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    button {
+      margin: 8px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #ar-button {
+      background-color: #28a745;
+    }
+    model-viewer {
+      width: 100%;
+      max-width: 500px;
+      height: 400px;
+      margin: 20px auto;
+    }
+  </style>
+
+  <!-- Google Model Viewer -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+
+  <h1>View 3D Models in AR (Android)</h1>
+
+  <model-viewer id="viewer"
+    alt="3D model"
+    src=""
+    ar
+    ar-modes="scene-viewer"
+    auto-rotate
+    camera-controls
+    shadow-intensity="1">
+  </model-viewer>
+
+  <!-- Dropdown to choose models -->
+  <div>
+    <select id="modelSelect" onchange="selectModel(this.value)">
+      <option value="">-- Select a model --</option>
+      <option value="aoiBa_draco.glb">Model A</option>
+      <option value="twoMachines_blender.glb">Model B</option>
+      <option value="aoi_tripo_pbr.glb">Model C</option>
+    </select>
+  </div>
+
+  <button id="ar-button" onclick="launchAR()">View in AR</button>
+
+  <script src="androidAR.js"></script>
+
+</body>
+</html>
